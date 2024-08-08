@@ -1,6 +1,6 @@
 from src.observations.base_observation import BaseObservation
 from src.interfaces.order_interface import OrderAction
-from typing import List, Callable, TypeVar, Generic, Protocol, Any
+from typing import List, Protocol, Any
 from gymnasium import spaces
 import numpy as np
 import pandas as pd

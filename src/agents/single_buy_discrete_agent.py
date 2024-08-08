@@ -72,7 +72,7 @@ def start():
 
         # Run a few test episodes
         obs = env.reset()
-        while True:
+        for _ in range(100):  # Run for 100 steps
             action, _states = model.predict(obs, deterministic=True)
             obs, rewards, dones, infos = env.step(action)
 

@@ -1,4 +1,4 @@
-from typing import List, Callable, Self, Any, SupportsFloat, Tuple, Optional
+from typing import Callable, Self, Any, SupportsFloat, Tuple, Optional
 import pandas as pd
 from src.environments.base_environment.base_environment import BaseEnvironment
 from src.interfaces.data_interface import TickData

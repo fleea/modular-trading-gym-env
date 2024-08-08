@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
-import numpy as np
+from unittest.mock import patch
 from src.utils.mlflow import MLflowCallback  # Adjust this import path as necessary
 
 

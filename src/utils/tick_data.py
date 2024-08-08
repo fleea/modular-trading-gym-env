@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Callable, TypedDict, NamedTuple, Tuple
+from typing import List, Callable, TypedDict, NamedTuple
 import pandas as pd
 
 

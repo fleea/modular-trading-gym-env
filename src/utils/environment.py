@@ -6,7 +6,7 @@ from stable_baselines3.common.monitor import Monitor
 
 
 def get_env(
-    env_id: str, entry_point: str, log_dir: str, kwargs: Dict[str, Any]
+    env_id: str, entry_point: str, log_dir: str = None, **kwargs: Dict[str, Any]
 ) -> gym.Env:
     """
     Registers the environment if it hasn't been registered yet and returns an instance of it.
@@ -28,4 +28,4 @@ def get_env(
         register(id=env_id, entry_point=entry_point, kwargs=kwargs)
         # Now create the environment
         env = gym.make(env_id, **kwargs)
-    return Monitor(env, log_dir)
+    return Monitor(env, log_dir) if log_dir else env
