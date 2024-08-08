@@ -10,13 +10,13 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from src.observations.trend_observation import TrendObservation
 from src.rewards.simple_reward import SimpleReward
 from src.utils.environment import get_env
-from src.utils.mlflow import MLflowCallback
+from src.utils.mlflow import MLflowCallback, LOG_DIR
 from src.utils.tick_data import get_data
 
 
 def start():
-    mlflow.set_experiment("PPO Trading Agent - SingleBuyDiscreteAgent")
-    LOG_DIR = "./mlflow"
+    experiment_name = "PPO Trading Agent - SingleBuyDiscreteAgent"
+    mlflow.set_experiment(experiment_name)
 
     with mlflow.start_run():
         tick_data = get_data()

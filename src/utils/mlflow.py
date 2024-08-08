@@ -3,6 +3,9 @@ import mlflow
 from stable_baselines3.common.callbacks import BaseCallback
 
 
+LOG_DIR="./mlflow"
+
+
 class MLflowCallback(BaseCallback):
     def __init__(self, check_freq: int, verbose: int = 1):
         super(MLflowCallback, self).__init__(verbose)
