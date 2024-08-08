@@ -7,7 +7,7 @@ from src.environments.multiple_buy_gear.multiple_buy_gear_environment import (
 )
 from src.interfaces.order_interface import OrderType, OrderAction, OrderObjectType
 from src.observations.base_observation import BaseObservation
-from src.utils.tick_data import Direction, simulate_prices
+from src.utils.tick_data import simulate_prices
 
 
 class TestMultipleBuyGearEnvironment(unittest.TestCase):

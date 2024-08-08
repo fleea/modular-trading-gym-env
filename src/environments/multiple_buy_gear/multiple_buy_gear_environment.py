@@ -104,7 +104,6 @@ class MultipleBuyGearEnvironment(BaseEnvironment):
         self._update_account_state()
 
         self.current_step += 1
-        # TODO: If balance is below threshold, done is also True
         done = self.current_step >= len(self.tick_data) - 1
         rwd = self.reward_function(self)
         self.rewards.append(rwd)

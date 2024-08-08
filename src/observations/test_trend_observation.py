@@ -3,7 +3,6 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 from gymnasium import spaces
-from src.interfaces.order_interface import OrderAction
 from src.observations.trend_observation import TrendObservation, TrendEnvironment
 
 
