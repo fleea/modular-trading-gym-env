@@ -38,15 +38,10 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
 
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
         current_price = env.get_current_price(OrderAction.CLOSE)
-        trends = []
-
-        for offset in self.trend_offsets:
-            if env.current_step - offset >= 0:
-                past_tick = env.tick_data.loc[env.current_step - offset]
-                past_price = (past_tick.bid_price + past_tick.ask_price) / 2
-                trend = current_price - past_price
-            else:
-                trend = 0.0
-            trends.append(trend)
-
+        trends = [
+            current_price - ((env.tick_data.loc[env.current_step - offset].bid_price + env.tick_data.loc[
+                env.current_step - offset].ask_price) / 2)
+            if env.current_step - offset >= 0 else 0.0
+            for offset in self.trend_offsets
+        ]
         return trends
