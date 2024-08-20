@@ -54,7 +54,8 @@ To run a training session with the PPO agent on the MultipleBuyGear environment:
 
 ```sh
 export PYTHONPATH=$PYTHONPATH:. # Make sure to set the PYTHONPATH on root
-python src/agents/multiple_buy_gear_agent.py
+python3 src/agents/multiple_buy_agent.py # Run an agent
+python3 src/agents/single_buy_agent.py
 ```
 
 Tick data is still mock, feel free to load your own

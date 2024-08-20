@@ -2,15 +2,15 @@ import unittest
 from unittest.mock import Mock, patch
 import numpy as np
 from gymnasium import spaces
-from src.environments.multiple_buy_gear.multiple_buy_gear_environment import (
-    MultipleBuyGearEnvironment,
+from src.environments.multiple_buy.multiple_buy_environment import (
+    MultipleBuyEnvironment,
 )
 from src.interfaces.order_interface import OrderType, OrderAction, OrderObjectType
 from src.observations.base_observation import BaseObservation
 from src.utils.tick_data import simulate_prices
 
 
-class TestMultipleBuyGearEnvironment(unittest.TestCase):
+class TestMultipleBuyEnvironment(unittest.TestCase):
     def setUp(self):
         self.initial_balance = 10000
         down = {

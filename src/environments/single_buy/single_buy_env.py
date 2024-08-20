@@ -21,7 +21,7 @@ def _calculate_profit(exit_price: float, order: OrderObjectType) -> float:
     return (exit_price - order.open_price) * order.volume
 
 
-class SingleBuyDiscreteEnv(BaseEnvironment):
+class SingleBuyEnv(BaseEnvironment):
     """
     A simple trading environment for a single buy position based on gymnasium and BaseEnvironment.
 
@@ -37,7 +37,7 @@ class SingleBuyDiscreteEnv(BaseEnvironment):
         self,
         initial_balance: int,
         tick_data: pd.DataFrame,
-        observation: BaseObservation["SingleBuyDiscreteEnv"],
+        observation: BaseObservation["SingleBuyEnv"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
     ) -> None:
@@ -47,7 +47,7 @@ class SingleBuyDiscreteEnv(BaseEnvironment):
         Args:
             initial_balance (int): The initial account balance.
             tick_data (List[TickData]): List of tick data for the trading session.
-            observation (BaseObservation[SingleBuyDiscreteEnv]): Observation class that has get_space and get_observation methods
+            observation (BaseObservation[SingleBuyEnv]): Observation class that has get_space and get_observation methods
             reward_func (Callable[[Self, float], float]): A function to calculate rewards. Used in steps, not needed in base_environment environment.
         """
         min_periods = observation.get_min_periods()

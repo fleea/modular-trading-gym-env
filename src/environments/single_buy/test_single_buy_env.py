@@ -5,12 +5,12 @@ import numpy as np
 from gymnasium import spaces
 from src.interfaces.order_interface import OrderType, OrderAction
 from src.observations.base_observation import BaseObservation
-from src.environments.single_buy_discrete.single_buy_discrete_env import (
-    SingleBuyDiscreteEnv,
+from src.environments.single_buy.single_buy_env import (
+    SingleBuyEnv,
 )
 
 
-class TestSingleBuyDiscreteEnv(unittest.TestCase):
+class TestSingleBuyEnv(unittest.TestCase):
     def setUp(self):
         # Create a mock observation
         self.mock_observation = Mock(spec=BaseObservation)
@@ -33,7 +33,7 @@ class TestSingleBuyDiscreteEnv(unittest.TestCase):
         self.mock_reward_func = Mock(return_value=0.0)
 
         # Create the environment
-        self.env = SingleBuyDiscreteEnv(
+        self.env = SingleBuyEnv(
             initial_balance=10000,
             tick_data=self.tick_data,
             observation=self.mock_observation,
@@ -86,7 +86,7 @@ class TestSingleBuyDiscreteEnv(unittest.TestCase):
         self.assertEqual(close_price, self.tick_data.loc[0, "bid_price"])
 
     @patch(
-        "src.environments.single_buy_discrete.single_buy_discrete_env.SingleBuyDiscreteEnv._update_account_state"
+        "src.environments.single_buy.single_buy_env.SingleBuyEnv._update_account_state"
     )
     def test_account_update_called(self, mock_update):
         self.env.reset()

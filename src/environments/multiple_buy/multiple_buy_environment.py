@@ -9,7 +9,7 @@ from src.observations.base_observation import BaseObservation
 from src.enums.closing_strategy_enum import OrderClosingStrategy
 
 
-class MultipleBuyGearEnvironment(BaseEnvironment):
+class MultipleBuyEnvironment(BaseEnvironment):
     """
     A trading environment supporting multiple buy orders with a gear-based action space.
 
@@ -27,7 +27,7 @@ class MultipleBuyGearEnvironment(BaseEnvironment):
         self,
         initial_balance: int,
         tick_data: pd.DataFrame,
-        observation: BaseObservation["MultipleBuyGearEnvironment"],
+        observation: BaseObservation["MultipleBuyEnvironment"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
         max_orders: int = 3,
