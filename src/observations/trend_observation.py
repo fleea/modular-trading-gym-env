@@ -28,9 +28,8 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
         return spaces.Box(low=low, high=high, shape=shape, dtype=np.float32)
 
     def get_min_periods(self) -> int:
-        return (
-            max(self.trend_offsets) + 1
-        )  # +1 to ensure we have data for the current step
+        # Trend_offset is offset, and if it's become index, it the next step (offset + 1)
+        return max(self.trend_offsets)
 
     def get_observation(self, env: TrendEnvironment) -> np.ndarray:
         trends = self._calculate_trend(env)
@@ -39,8 +38,7 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
         current_price = env.get_current_price(OrderAction.CLOSE)
         trends = [
-            current_price - ((env.tick_data.loc[env.current_step - offset].bid_price + env.tick_data.loc[
-                env.current_step - offset].ask_price) / 2)
+            current_price - env.tick_data.loc[env.current_step - offset].bid_price
             if env.current_step - offset >= 0 else 0.0
             for offset in self.trend_offsets
         ]
