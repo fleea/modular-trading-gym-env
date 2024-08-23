@@ -33,12 +33,13 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
 
     def get_observation(self, env: TrendEnvironment) -> np.ndarray:
         trends = self._calculate_trend(env)
-        return np.array([bool(env.orders)] + trends, dtype=np.float32)
+        obs = np.concatenate(([bool(env.orders)], trends))
+        return obs
 
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
         current_price = env.get_current_price(OrderAction.CLOSE)
         trends = [
-            current_price - env.tick_data.loc[env.current_step - offset].bid_price
+            (current_price - env.tick_data.loc[env.current_step - offset].bid_price) * 100
             if env.current_step - offset >= 0 else 0.0
             for offset in self.trend_offsets
         ]

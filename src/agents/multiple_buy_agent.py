@@ -6,13 +6,14 @@ import mlflow
 from stable_baselines3 import PPO
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv
-#
-from src.observations.trend_observation import TrendObservation
-from src.observations.trend_observation_percentage import TrendObservationPercentage
+# from src.observations.trend_observation import TrendObservation
+# from src.observations.trend_observation_percentage import TrendObservationPercentage
+from src.observations.trend_observation_std import TrendObservationStd
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
 from src.utils.environment import get_env
 from src.utils.mlflow import MLflowCallback, LOG_DIR
 from src.utils.tick_data import get_data, plot_tick_data
+import pandas as pd
 
 
 def start():
@@ -24,18 +25,22 @@ def start():
         print(f"Tick data:\n{tick_data}")
         print(f"Max profit: {max_profit}")
 
-        trend_offset = [1,5,9]
-        trend_observation = TrendObservationPercentage(trend_offset)
+        trend_offset = [1, 2, 5]
+        std_multiplier = 1
+        trend_observation = TrendObservationStd(trend_offset, std_multiplier)
         lot = 0.01 * 100_000
+        max_order = 5
         env_kwargs = {
             "initial_balance": 10_000,
             "tick_data": tick_data,
             "reward_func": NonZeroBuyReward,
             "observation": trend_observation,
-            "max_orders": 1,
+            "max_orders": max_order,
             "lot": lot
         }
-        mlflow.log_param("max_profit", max_profit * lot)
+        mlflow.log_param("max_profit", max_profit * lot * max_order)
+        mlflow.log_param("std_multiplier", std_multiplier)
+        mlflow.log_param("trend_offset", trend_offset)
 
         env = DummyVecEnv(
             [
@@ -109,3 +114,5 @@ def log_metrics_from_dict(metrics_dict):
 
 if __name__ == "__main__":
     start()
+    # df = pd.read_csv('../data/tickdata_eurusd.csv')
+    # print(df.head())
