@@ -35,8 +35,9 @@ This project implements a flexible reinforcement learning environment for simula
 3. Install the required packages:
    ```
    pip install -r requirements.txt
+   pip install mlflow
    ```
-
+   
 ## Project Structure
 
 - `src/`: Main source code directory
