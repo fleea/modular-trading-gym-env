@@ -56,7 +56,7 @@ def start():
         batch_size = len(tick_data)-max(trend_offset)
         model_params = {
             "learning_rate": 1e-3,  # Increased for faster learning on small dataset
-            "n_steps": 5*batch_size,  # Set to the length of your data
+            "n_steps": batch_size,  # Set to the length of your data
             "batch_size": batch_size,  # Reduced due to small dataset
             "n_epochs": 10,  # Reduced to prevent overfitting
             "gamma": 0.95,  # Slightly reduced for shorter-term focus
