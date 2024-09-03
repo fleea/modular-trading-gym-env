@@ -7,15 +7,15 @@ from collections import deque
 from itertools import chain
 
 
-class TrendObservationStd(TrendObservation):
-    def __init__(self, trend_offsets: List[int], history_size: int = 30, std_multiplier: float = 1.0):
+class TrendObservationRMS(TrendObservation):
+    def __init__(self, trend_offsets: List[int], history_size: int = 30, rms_multiplier: float = 1.0):
         super().__init__(trend_offsets)
         self.history_size = history_size
         self.trend_history = deque(maxlen=history_size)
-        self.std_multiplier = std_multiplier
+        self.rms_multiplier = rms_multiplier
 
     def get_space(self) -> spaces.Space:
-        # standard deviation should be between 1 and -1
+        # RMS should be between 1 and -1
         # Add 10 to the high and low values to accommodate for the change
         low = np.array([0] + ([-10.0] * len(self.trend_offsets)), dtype=np.float32)
         high = np.array([1] + [10.0] * len(self.trend_offsets), dtype=np.float32)
@@ -31,14 +31,14 @@ class TrendObservationStd(TrendObservation):
         ])
         self.trend_history.append(trends)
 
-        multiplier = get_multiplier(self.trend_history) * self.std_multiplier
+        multiplier = get_multiplier(self.trend_history) * self.rms_multiplier
         return trends * multiplier
 
 
 def get_multiplier(row: list):
     row = list(chain.from_iterable(row))
-    std_from_change = np.sqrt(np.sum(np.square(row))/len(row))
-    return 1/std_from_change if std_from_change != 0 else 1
+    rms_from_change = np.sqrt(np.mean(np.square(row)))
+    return 1/rms_from_change if rms_from_change != 0 else 1
 
 
 if __name__ == "__main__":

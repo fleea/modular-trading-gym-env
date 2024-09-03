@@ -92,7 +92,7 @@ def simulate_prices(initial_price: float, commands: List[PriceCommand]) -> pd.Da
     return pd.DataFrame(data), total_max_profit
 
 
-def get_data():
+def get_data(size=1000):
     # WRAPPER FOR COMMANDS FUNCTION
     # Feel free to change or copy and paste to agent
 
@@ -126,7 +126,7 @@ def get_data():
     # return simulate_prices(initial_price, commands)
 
     initial_price: float = 1.015055
-    total_points = 600
+    total_points = size
     avg_segment_length = 9
 
     commands: List[PriceCommand] = []

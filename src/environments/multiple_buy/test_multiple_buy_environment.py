@@ -35,7 +35,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
         self.reward_func = Mock(return_value=0.0)
 
-        self.env = MultipleBuyGearEnvironment(
+        self.env = MultipleBuyEnvironment(
             initial_balance=self.initial_balance,
             tick_data=self.tick_data,
             observation=self.mock_observation,
@@ -57,8 +57,8 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
         self.assertIn("balance", info)
         self.assertIn("equity", info)
 
-    @patch.object(MultipleBuyGearEnvironment, "_open_new_orders")
-    @patch.object(MultipleBuyGearEnvironment, "_close_excess_orders")
+    @patch.object(MultipleBuyEnvironment, "_open_new_orders")
+    @patch.object(MultipleBuyEnvironment, "_close_excess_orders")
     def test_step(self, mock_close, mock_open):
         self.env.reset()
 
