@@ -18,7 +18,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
 
     Attributes:
         tick_data (pd.DataFrame): DataFrame of tick data for the trading session.
-        current_step (int): The current step in the environment.
+        current_index (int): The current index in the environment.
         max_orders (int): Maximum number of concurrent orders allowed.
         closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
     """
@@ -32,6 +32,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
         lot: float = 0.01 * 100_000,
         max_orders: int = 3,
         closing_strategy: OrderClosingStrategy = OrderClosingStrategy.LIFO,
+        start_index: int = 0,
     ):
         """
         Initialize the multiple buy gear trading environment.
@@ -45,15 +46,16 @@ class MultipleBuyEnvironment(BaseEnvironment):
             max_orders (int): Maximum number of concurrent orders allowed.
             closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
         """
-        min_periods = observation.get_min_periods()
-        if len(tick_data) <= min_periods:
+        start_padding = observation.get_start_padding()
+        if len(tick_data) <= start_padding:
             raise ValueError(
-                f"Not enough data. Need at least {min_periods} periods, but got {len(tick_data)}"
+                f"Not enough data. Need at least {start_padding} periods, but got {len(tick_data)}"
             )
 
         super().__init__(
-            initial_balance, data=tick_data, max_step=len(tick_data) - min_periods
+            initial_balance, data=tick_data, start_index=start_index + start_padding, max_index=len(tick_data) + start_index - 1, 
         )
+
         self.observation = observation
         self.tick_data = tick_data
         self.reward_function = reward_func
@@ -62,11 +64,11 @@ class MultipleBuyEnvironment(BaseEnvironment):
         self.closing_strategy = closing_strategy
         self.action_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = observation.get_space()
-        self.current_step = min_periods
+        self.current_index = self.start_index
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.current_step = self.observation.get_min_periods()
+        self.current_index = self.start_index
         return self._get_observation(), self._get_info()
 
     def step(
@@ -103,12 +105,14 @@ class MultipleBuyEnvironment(BaseEnvironment):
 
         self._update_account_state()
 
-        self.current_step += 1
-        done = self.current_step >= len(self.tick_data) - 1
+        done = self.current_index >= self.max_index
         rwd = self.reward_function(self)
         self.rewards.append(rwd)
+        obs = self._get_observation()
+        info = self._get_info()
+        self.current_index += 1
 
-        return (self._get_observation(), rwd, done, False, self._get_info())
+        return (obs, rwd, done, False, info)
 
     def _open_new_orders(self, num_orders: int):
         for _ in range(num_orders):
@@ -160,4 +164,4 @@ class MultipleBuyEnvironment(BaseEnvironment):
         )
 
     def _get_tick_data(self: Self) -> TickData:
-        return self.tick_data.loc[self.current_step]
+        return self.tick_data.loc[self.current_index]

@@ -52,7 +52,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
     def test_reset(self):
         obs, info = self.env.reset()
-        self.assertEqual(self.env.current_step, 10)  # min_periods
+        self.assertEqual(self.env.current_index, 10)  # min_periods
         np.testing.assert_array_equal(obs, np.array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertIn("balance", info)
         self.assertIn("equity", info)
@@ -101,7 +101,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
         self.env.step(np.array([0.7], dtype=np.float32))
         self.env.step(np.array([0.7], dtype=np.float32))
         print(self.env.orders)
-        self.env.current_step = 14
+        self.env.current_index = 14
         self.env.step(np.array([0.1], dtype=np.float32))
         print(self.env.closed_orders)
         self.assertEqual(len(self.env.orders), 0)
@@ -149,7 +149,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
     def test_get_current_price(self):
         self.env.reset()
-        self.env.current_step = 15  # Arbitrary step
+        self.env.current_index = 15  # Arbitrary step
         open_price = self.env.get_current_price(OrderAction.OPEN)
         close_price = self.env.get_current_price(OrderAction.CLOSE)
         self.assertEqual(open_price, self.tick_data.loc[15, "ask_price"])
@@ -170,7 +170,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
             self.assertIsInstance(info, dict)
 
         # Move to downward trend (next 20 steps)
-        self.env.current_step = 25
+        self.env.current_index = 25
         for _ in range(5):
             obs, reward, done, truncated, info = self.env.step(
                 np.array([0.3], dtype=np.float32)
@@ -182,7 +182,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
             self.assertIsInstance(info, dict)
 
         # Move to next upward trend
-        self.env.current_step = 45
+        self.env.current_index = 45
 
         for _ in range(5):
             obs, reward, done, truncated, info = self.env.step(

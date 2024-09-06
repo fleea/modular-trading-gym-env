@@ -30,8 +30,8 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     equity: List[float] = []
     closed_orders: List[OrderObjectType] = field(default_factory=list)
     orders: List[OrderObjectType] = field(default_factory=list)
-    current_step: int = 0
-    max_steps: int = (
+    current_index: int = 0
+    max_index: int = (
         1000  # Default value, based on tick data, can be overridden in child classes
     )
     data: DataType = field(
@@ -39,7 +39,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     )  # Tick Data or trading data per minute
 
     def __init__(
-        self: Self, initial_balance: int, data: pd.DataFrame, max_step: int
+        self: Self, initial_balance: int, data: pd.DataFrame, start_index: int = 0, max_index: int = None
     ) -> None:
         self.initial_balance = initial_balance
         self.balance = [initial_balance]
@@ -48,8 +48,9 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         self.closed_orders = []
         self.orders = []
         self.data = data
-        self.max_steps = max_step if max_step is not None else len(data)
-        self.current_step = 0
+        self.start_index = start_index
+        self.max_index = max_index if max_index is not None else len(data)
+        self.current_index = start_index
 
         # Define a default observation space
         self.observation_space = spaces.Box(
@@ -69,7 +70,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         self.rewards = [0]
         self.closed_orders = []
         self.orders = []
-        self.current_step = 0
+        self.current_index = self.start_index
         # NEED TO RETURN tuple[[NDArray], dict[str, Any]]
         # WARN: The obs returned by the `reset()` method is not within the observation space.
         return self._get_observation(), self._get_info()
@@ -89,7 +90,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         pass
 
     def _is_done(self: Self) -> bool:
-        return self.current_step >= self.max_steps or self.balance[-1] <= 0
+        return self.current_index - self.start_index >= self.max_index or self.balance[-1] <= 0
 
     def _is_truncated(self: Self) -> bool:
         return False  # Default implementation, can be overridden in child classes
@@ -104,11 +105,12 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
             "closed_orders": self.closed_orders,
             "orders": self.orders,
             "num_closed_orders": len(self.closed_orders),
-            "current_step": self.current_step,
+            "current_index": self.current_index,
+            "max_index": self.max_index,
             "rewards": self.rewards,
             "reward": self.rewards[-1],  # Add the reward to the info
             "final_equity": (
-                self.equity[-1] if self.current_step == len(self.data) - 1 else None
+                self.equity[-1] if self.current_index >= self.max_index else None
             ),
         }
 
@@ -204,8 +206,12 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         """
         pass
 
-    def get_step_data(self, offset: int = 0):
-        return self.data.iloc[self.current_step + offset]
+    def get_step_data(self, offset):
+        index = self.current_index + offset
+        try:
+            return self.data.iloc[index]
+        except IndexError:
+            return None
 
 
 __all__ = ["BaseEnvironment"]

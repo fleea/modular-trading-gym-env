@@ -23,17 +23,27 @@ class TrendObservationRMS(TrendObservation):
         return spaces.Box(low=low, high=high, shape=shape, dtype=np.float32)
 
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
-        current_price = env.tick_data.loc[env.current_step].bid_price
-        trends = np.array([
-            (current_price - env.tick_data.loc[env.current_step - offset].bid_price)
-            if env.current_step - offset >= 0 else 0.0
-            for offset in self.trend_offsets
-        ])
-        self.trend_history.append(trends)
+        try:
+            current_tick = env.tick_data.loc[env.current_index]
+            current_price = current_tick.bid_price
+            trends = np.array([
+                (current_price - env.tick_data.loc[env.current_index - offset].bid_price)
+                if env.current_index - offset >= env.start_index else 0.0
+                for offset in self.trend_offsets
+            ], dtype=np.float32)
 
-        multiplier = get_multiplier(self.trend_history) * self.rms_multiplier
-        return trends * multiplier
+            self.trend_history.append(trends)
 
+            multiplier = get_multiplier(self.trend_history) * self.rms_multiplier
+            return trends * multiplier
+        except Exception as e:
+            print(f"Error in _calculate_trend: {type(e).__name__}: {e}")
+            print(f"current_index: {env.current_index}")
+            print(f"tick data: {env.tick_data}")
+            print(f"trend_offsets: {self.trend_offsets}")
+            print(f"trend_history: {list(self.trend_history)}")
+            print(f"rms_multiplier: {self.rms_multiplier}")
+            raise
 
 def get_multiplier(row: list):
     row = list(chain.from_iterable(row))

@@ -8,7 +8,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv
 # from src.observations.trend_observation import TrendObservation
 # from src.observations.trend_observation_percentage import TrendObservationPercentage
-from src.observations.trend_observation_std import TrendObservationStd
+from src.observations.trend_observation_rms import TrendObservationStd
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
 from src.utils.environment import get_env
 from src.utils.mlflow import MLflowCallback, LOG_DIR
