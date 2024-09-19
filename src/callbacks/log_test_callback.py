@@ -55,20 +55,6 @@ class LogTestCallback(BaseCallback):
 
     def evaluate_model(self):
         model = self.model
-        env = self.model.get_env()
-        timesteps_per_eval = 100
-        
-        # obs = env.reset()
-        # for _ in range(timesteps_per_eval):
-        #     action, _states = model.predict(obs, deterministic=True)
-        #     obs, rewards, dones, infos = env.step(action)
-
-        #     if dones.any():
-        #         self.log_locals("eval_train", infos, self.num_timesteps)
-        #         obs = env.reset()
-        #         break
-        # else:
-        #     self.log_locals("eval_train", infos, self.num_timesteps)
 
         # mean_reward, std_reward = evaluate_policy(model, self.test_env, n_eval_episodes=timesteps_per_eval, deterministic=True)
         # mlflow.log_metric(f"eval_train/mean_reward", mean_reward, step=self.num_timesteps)
@@ -77,34 +63,34 @@ class LogTestCallback(BaseCallback):
         # MANUAL EVALUATION
         if self.test_env is not None:
             test_env = self.test_env
-            # tick_data = test_env.tick_data
             obs = test_env.reset()
             lstm_states = None
             num_envs = 1
             # Episode start signals are used to reset the lstm states
             episode_starts = np.ones((num_envs,), dtype=bool)
             while True:
-                action, _states = model.predict(obs, state=lstm_states, deterministic=True)
+                action, _states = model.predict(obs, state=lstm_states, episode_start=episode_starts, deterministic=True)
                 obs, rewards, dones, infos = test_env.step(action)
 
                 if dones.any():
                     info = infos[0]
                     mlflow.log_metric(f"eval_test/final_equity", info["final_equity"], step=self.num_timesteps)
                     break
-        
-        
-            # mean_reward_test, std_reward_test = evaluate_policy(model, test_env, n_eval_episodes=timesteps_per_eval, deterministic=True)
-            # mlflow.log_metric(f"eval_test/mean_reward", mean_reward_test, step=self.num_timesteps)
-            # mlflow.log_metric(f"eval_test/std_reward", std_reward_test, step=self.num_timesteps)
 
 
     def _on_step(self) -> bool:
+        """
+        This method is called at each step of the training process.
+        """
         self.log_locals(self.name, self.locals["infos"], self.num_timesteps)
         if self.n_calls % self.check_freq == 0:
             self.evaluate_model()
         return True
     
     def __call__(self, locals_, globals_):
+        """
+        This method is called at each call of the callback.
+        """
         self.log_locals(self.name, locals_["infos"], self.step_count)
         self.step_count += 1
         return False

@@ -32,7 +32,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     orders: List[OrderObjectType] = field(default_factory=list)
     current_index: int = 0
     max_index: int = (
-        1000  # Default value, based on tick data, can be overridden in child classes
+        1000  # Default value, based on data, can be overridden in child classes
     )
     data: DataType = field(
         default_factory=pd.DataFrame
@@ -49,7 +49,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         self.orders = []
         self.data = data
         self.start_index = start_index
-        self.max_index = max_index if max_index is not None else len(data)
+        self.max_index = max_index if max_index is not None else len(data) - start_index
         self.current_index = start_index
 
         # Define a default observation space
@@ -81,8 +81,8 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     ) -> Tuple[ObservationType, float, bool, bool, dict[str, Any]]:
         # This method should be implemented in child classes
         # Step should return: Observation space, reward, done, truncated, info
-        # On buy, get tick_data, open position
-        # On close, get tick_data, close position
+        # On buy, get data, open position
+        # On close, get data, close position
         pass
 
     @abstractmethod
@@ -155,7 +155,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
 
     def _update_account_state(self) -> None:
         """
-        Update the account state (balance and equity) for the current tick.
+        Update the account state (balance and equity) for the current data.
         This method uses Decimal for high-precision calculations.
         """
         # Set decimal precision (adjust as needed)

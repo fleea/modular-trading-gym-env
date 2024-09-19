@@ -21,8 +21,8 @@ def start():
     mlflow.set_experiment(experiment_name)
 
     with mlflow.start_run():
-        tick_data, max_profit = get_data()
-        print(f"Tick data:\n{tick_data}")
+        data, max_profit = get_data()
+        print(f"Tick data:\n{data}")
         print(f"Max profit: {max_profit}")
 
         trend_offset = [1, 2, 5]
@@ -32,7 +32,7 @@ def start():
         max_order = 5
         env_kwargs = {
             "initial_balance": 10_000,
-            "tick_data": tick_data,
+            "data": data,
             "reward_func": NonZeroBuyReward,
             "observation": trend_observation,
             "max_orders": max_order,
@@ -53,7 +53,7 @@ def start():
             ]
         )
 
-        batch_size = len(tick_data)-max(trend_offset)
+        batch_size = len(data)-max(trend_offset)
         model_params = {
             "learning_rate": 1e-3,  # Increased for faster learning on small dataset
             "n_steps": batch_size,  # Set to the length of your data
@@ -69,7 +69,7 @@ def start():
 
         log_metrics_from_dict(model_params)
 
-        plot_tick_data(tick_data)
+        # plot_tick_data(data)
         # Create the PPO agent
         model = PPO("MlpPolicy", env, verbose=1, **model_params)
 

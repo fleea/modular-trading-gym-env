@@ -1,3 +1,4 @@
+# pytest src/environments/multiple_buy/test_multiple_buy_environment.py
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
@@ -7,7 +8,7 @@ from src.environments.multiple_buy.multiple_buy_environment import (
 )
 from src.interfaces.order_interface import OrderType, OrderAction, OrderObjectType
 from src.observations.base_observation import BaseObservation
-from src.utils.tick_data import simulate_prices
+from src.utils.tick_data import simulate_prices, get_data
 
 
 class TestMultipleBuyEnvironment(unittest.TestCase):
@@ -23,9 +24,9 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
             "spread_func": lambda step: 0.00011,  # Increasing spread
             "delta_func": lambda step: 0.001,  # Constant downward trend
         }
-        self.tick_data = simulate_prices(1.015055, [down, up, down, up])
+        self.data, _ = simulate_prices(1.015055, [down, up, down, up])
         self.mock_observation = Mock(spec=BaseObservation)
-        self.mock_observation.get_min_periods.return_value = 10
+        self.mock_observation.get_start_padding.return_value = 1
         self.mock_observation.get_space.return_value = spaces.Box(
             low=-np.inf, high=np.inf, shape=(5,)
         )
@@ -37,7 +38,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
         self.env = MultipleBuyEnvironment(
             initial_balance=self.initial_balance,
-            tick_data=self.tick_data,
+            data=self.data,
             observation=self.mock_observation,
             reward_func=self.reward_func,
             max_orders=3,
@@ -45,14 +46,14 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
     def test_initialization(self):
         self.assertEqual(self.env.initial_balance, self.initial_balance)
-        self.assertEqual(len(self.env.tick_data), 80)  # 4 * 20 steps
+        self.assertEqual(len(self.env.data), 80)  # 4 * 20 steps
         self.assertEqual(self.env.max_orders, 3)
         self.assertIsInstance(self.env.action_space, spaces.Box)
         self.assertEqual(self.env.action_space.shape, (1,))
 
     def test_reset(self):
         obs, info = self.env.reset()
-        self.assertEqual(self.env.current_index, 10)  # min_periods
+        self.assertEqual(self.env.current_index, 1)  # start_padding
         np.testing.assert_array_equal(obs, np.array([1.0, 2.0, 3.0, 4.0, 5.0]))
         self.assertIn("balance", info)
         self.assertIn("equity", info)
@@ -96,7 +97,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
             "spread_func": lambda step: 0.00011,  # Increasing spread
             "delta_func": lambda step: 0.001,  # Constant downward trend
         }
-        self.env.tick_data = simulate_prices(1.015055, [up])
+        self.env.data, _ = simulate_prices(1.015055, [up])
         self.env.step(np.array([0.7], dtype=np.float32))
         self.env.step(np.array([0.7], dtype=np.float32))
         self.env.step(np.array([0.7], dtype=np.float32))
@@ -152,8 +153,8 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
         self.env.current_index = 15  # Arbitrary step
         open_price = self.env.get_current_price(OrderAction.OPEN)
         close_price = self.env.get_current_price(OrderAction.CLOSE)
-        self.assertEqual(open_price, self.tick_data.loc[15, "ask_price"])
-        self.assertEqual(close_price, self.tick_data.loc[15, "bid_price"])
+        self.assertEqual(open_price, self.data.loc[15, "ask_price"])
+        self.assertEqual(close_price, self.data.loc[15, "bid_price"])
 
     def test_different_market_conditions(self):
         self.env.reset()

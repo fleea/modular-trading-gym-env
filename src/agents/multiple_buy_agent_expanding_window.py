@@ -11,7 +11,7 @@ from src.observations.trend_observation_rms import TrendObservationRMS
 from src.observations.price_observation import PriceObservation
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
 from src.utils.environment import get_env
-from src.utils.mlflow import MLflowCallback, LOG_DIR
+from src.callbacks.log_test_callback import LogTestCallback, LOG_DIR
 from src.utils.tick_data import get_real_data_per_year, get_data
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import train_test_split
@@ -133,11 +133,11 @@ def start():
         # Evaluate on test data
         test_env_kwargs = env_kwargs.copy()
         test_env_kwargs["start_index"] = test_data.index[0]
-        test_env_kwargs["tick_data"] = test_data
+        test_env_kwargs["data"] = test_data
         test_env = SubprocVecEnv([lambda: get_env("MultipleBuyEnv", "src.environments.multiple_buy.multiple_buy_environment:MultipleBuyEnvironment", LOG_DIR, test_env_kwargs)])
 
         # SETUP MLFLOW CALLBACK WITH TEST ENV
-        mlflow_callback = MLflowCallback(check_freq=1000, name="training", test_env=test_env)
+        mlflow_callback = LogTestCallback(check_freq=1000, name="training", test_env=test_env)
         
         # RUN TRAINING WITH MLFLOW CALLBACK
         model.learn(total_timesteps=train_timesteps, callback=mlflow_callback)

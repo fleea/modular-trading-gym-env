@@ -29,47 +29,47 @@ class SingleBuyEnv(BaseEnvironment):
     Position (1) and NoPosition (0). It uses tick data and trends for observations.
 
     Attributes:
-        tick_data (List[TickData]): List of tick data for the trading session.
+        data (List[TickData]): List of tick data for the trading session.
         current_step (int): The current step in the environment.
     """
 
     def __init__(
         self,
         initial_balance: int,
-        tick_data: pd.DataFrame,
+        data: pd.DataFrame,
         observation: BaseObservation["SingleBuyEnv"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
+        start_index: int = 0,
+        max_index: int = None,
     ) -> None:
         """
         Initialize the single buy trading environment.
 
         Args:
             initial_balance (int): The initial account balance.
-            tick_data (List[TickData]): List of tick data for the trading session.
+            data (List[TickData]): List of tick data for the trading session.
             observation (BaseObservation[SingleBuyEnv]): Observation class that has get_space and get_observation methods
             reward_func (Callable[[Self, float], float]): A function to calculate rewards. Used in steps, not needed in base_environment environment.
         """
-        min_periods = observation.get_min_periods()
-        if len(tick_data) <= min_periods:
+        start_padding = observation.get_start_padding()
+        if len(data) <= start_padding:
             raise ValueError(
-                f"Not enough data. Need at least {min_periods} periods, but got {len(tick_data)}"
+                f"Not enough data. Need at least {start_padding} periods, but got {len(data)}"
             )
 
         super().__init__(
-            initial_balance, data=tick_data, max_step=len(tick_data) - min_periods
+            initial_balance, data=data, start_index=start_index + start_padding, max_index=len(data) + start_index - 1
         )
         self.observation = observation
-        self.tick_data = tick_data
         self.reward_function = reward_func
         self.lot = lot
         self.action_space = spaces.Discrete(2)  # 0: NoPosition, 1: Position
         self.observation_space = observation.get_space()
-        self.current_step = min_periods  # Start at the minimum required step
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.current_step = self.observation.get_min_periods()
+        self.current_step = self.observation.get_start_padding()
         return self._get_observation(), self._get_info()
 
     def step(
@@ -91,19 +91,19 @@ class SingleBuyEnv(BaseEnvironment):
             close_price = self.get_current_price(OrderAction.CLOSE)
             self._close_order(self.orders[0], close_price)
         elif action == 1 and len(self.orders) == 0:  # Position
-            tick_data = self._get_tick_data()
+            data = self.get_current_data()
             open_price = self.get_current_price(OrderAction.OPEN)
             self._open_order(
                 order_type=OrderType.BUY,
                 volume=self.lot,
                 price=open_price,
-                timestamp=tick_data.timestamp,
+                timestamp=data.timestamp,
             )
 
         self._update_account_state()
 
         self.current_step += 1
-        done = self.current_step >= len(self.tick_data) - 1
+        done = self.current_step >= len(self.data) - 1
         rwd = self.reward_function(self)
         self.rewards.append(rwd)
 
@@ -115,10 +115,8 @@ class SingleBuyEnv(BaseEnvironment):
     def get_current_price(
         self, order_action: OrderAction, order_type: Optional[OrderType] = None
     ) -> float:
-        current = self._get_tick_data()
+        current = self.get_current_data()
         return (
             current.ask_price if order_action == OrderAction.OPEN else current.bid_price
         )
 
-    def _get_tick_data(self: Self) -> TickData:
-        return self.tick_data.loc[self.current_step]

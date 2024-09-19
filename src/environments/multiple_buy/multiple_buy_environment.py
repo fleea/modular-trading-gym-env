@@ -17,7 +17,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
     determined by a continuous action value. It supports various order closing strategies.
 
     Attributes:
-        tick_data (pd.DataFrame): DataFrame of tick data for the trading session.
+        data (pd.DataFrame): DataFrame of tick data for the trading session.
         current_index (int): The current index in the environment.
         max_orders (int): Maximum number of concurrent orders allowed.
         closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
@@ -26,7 +26,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
     def __init__(
         self,
         initial_balance: int,
-        tick_data: pd.DataFrame,
+        data: pd.DataFrame,
         observation: BaseObservation["MultipleBuyEnvironment"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
@@ -39,7 +39,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
 
         Args:
             initial_balance (int): The initial account balance.
-            tick_data (pd.DataFrame): DataFrame of tick data for the trading session.
+            data (pd.DataFrame): DataFrame of data for the trading session.
             observation (BaseObservation[MultipleBuyGearEnvironment]): Observation class with get_space and get_observation methods.
             reward_func (Callable[[Self, float], float]): A function to calculate rewards.
             lot (float): The lot size for each order.
@@ -47,31 +47,25 @@ class MultipleBuyEnvironment(BaseEnvironment):
             closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
         """
         start_padding = observation.get_start_padding()
-        if len(tick_data) <= start_padding:
+        if len(data) <= start_padding:
             raise ValueError(
-                f"Not enough data. Need at least {start_padding} periods, but got {len(tick_data)}"
+                f"Not enough data. Need at least {start_padding} periods, but got {len(data)}"
             )
 
         super().__init__(
-            initial_balance, data=tick_data, start_index=start_index + start_padding, max_index=len(tick_data) + start_index - 1, 
+            initial_balance, data=data, start_index=start_index + start_padding, max_index=len(data) + start_index - 1, 
         )
 
         self.observation = observation
-        self.tick_data = tick_data
         self.reward_function = reward_func
         self.lot = lot
         self.max_orders = max_orders
         self.closing_strategy = closing_strategy
         self.action_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = observation.get_space()
-        self.current_index = self.start_index
 
     def reset(self, seed=None):
         super().reset(seed=seed)
-        # LOGGING
-        # print(f"Reset called. Current index: {self.current_index}")
-        # print(f"Tick data shape: {self.tick_data.shape}")
-        # print(f"Tick data index: {self.tick_data.index}")
         return self._get_observation(), self._get_info()
 
     def step(
@@ -121,7 +115,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
         for _ in range(num_orders):
             open_price = self.get_current_price(OrderAction.OPEN)
             self._open_order(
-                OrderType.BUY, self.lot, open_price, self._get_tick_data().timestamp
+                OrderType.BUY, self.lot, open_price, self.get_current_data().timestamp
             )
 
     def _close_excess_orders(self, num_orders: int):
@@ -161,10 +155,8 @@ class MultipleBuyEnvironment(BaseEnvironment):
     def get_current_price(
         self, order_action: OrderAction, order_type: Optional[OrderType] = None
     ) -> float:
-        current = self._get_tick_data()
+        current = self.get_current_data()
         return (
             current.ask_price if order_action == OrderAction.OPEN else current.bid_price
         )
 
-    def _get_tick_data(self: Self) -> TickData:
-        return self.tick_data.loc[self.current_index]

@@ -1,3 +1,4 @@
+# pytest src/environments/single_buy/test_single_buy_env.py
 import unittest
 from unittest.mock import Mock, patch
 import pandas as pd
@@ -14,16 +15,16 @@ class TestSingleBuyEnv(unittest.TestCase):
     def setUp(self):
         # Create a mock observation
         self.mock_observation = Mock(spec=BaseObservation)
-        self.mock_observation.get_min_periods.return_value = 0
+        self.mock_observation.get_start_padding.return_value = 0
         self.mock_observation.get_space.return_value = spaces.Box(
             low=-np.inf, high=np.inf, shape=(1,)
         )
         self.mock_observation.get_observation.return_value = np.array([0.0])
 
         # Create sample tick data
-        self.tick_data = pd.DataFrame(
+        self.data = pd.DataFrame(
             {
-                "timestamp": pd.date_range(start="2023-01-01", periods=100, freq="H"),
+                "timestamp": pd.date_range(start="2023-01-01", periods=100, freq="h"),
                 "bid_price": np.random.uniform(90, 110, 100),
                 "ask_price": np.random.uniform(90, 110, 100),
             }
@@ -35,7 +36,7 @@ class TestSingleBuyEnv(unittest.TestCase):
         # Create the environment
         self.env = SingleBuyEnv(
             initial_balance=10000,
-            tick_data=self.tick_data,
+            data=self.data,
             observation=self.mock_observation,
             reward_func=self.mock_reward_func,
             lot=0.01,
@@ -43,7 +44,7 @@ class TestSingleBuyEnv(unittest.TestCase):
 
     def test_initialization(self):
         self.assertEqual(self.env.initial_balance, 10000)
-        self.assertEqual(len(self.env.tick_data), 100)
+        self.assertEqual(len(self.env.data), 100)
         self.assertEqual(self.env.lot, 0.01)
         self.assertEqual(self.env.action_space.n, 2)
         self.assertIsInstance(self.env.observation_space, spaces.Box)
@@ -82,8 +83,8 @@ class TestSingleBuyEnv(unittest.TestCase):
         self.env.reset()
         open_price = self.env.get_current_price(OrderAction.OPEN)
         close_price = self.env.get_current_price(OrderAction.CLOSE)
-        self.assertEqual(open_price, self.tick_data.loc[0, "ask_price"])
-        self.assertEqual(close_price, self.tick_data.loc[0, "bid_price"])
+        self.assertEqual(open_price, self.data.loc[0, "ask_price"])
+        self.assertEqual(close_price, self.data.loc[0, "bid_price"])
 
     @patch(
         "src.environments.single_buy.single_buy_env.SingleBuyEnv._update_account_state"

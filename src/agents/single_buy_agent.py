@@ -19,11 +19,11 @@ def start():
     mlflow.set_experiment(experiment_name)
 
     with mlflow.start_run():
-        tick_data = get_data()
+        data = get_data(start_index=0, max_index=100)
         trend_observation = TrendObservation([1, 2, 3])
         env_kwargs = {
             "initial_balance": 10_000,
-            "tick_data": tick_data,
+            "data": data,
             "reward_func": SimpleReward,
             "observation": trend_observation,
         }

@@ -12,7 +12,6 @@ class LogTestLSTMCallback(LogTestCallback):
         # MANUAL EVALUATION
         if self.test_env is not None:
             test_env = self.test_env
-            # tick_data = test_env.tick_data
             obs = test_env.reset()
             lstm_states = None
             num_envs = 1

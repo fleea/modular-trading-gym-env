@@ -23,15 +23,11 @@ class TrendObservationRMS(TrendObservation):
         return spaces.Box(low=low, high=high, shape=shape, dtype=np.float32)
 
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
-        # LOGGING
-        # print(f"Calculating trend. Current index: {env.current_index}")
-        # print(f"Tick data shape: {env.tick_data.shape}")
-        # print(f"Tick data index: {env.tick_data.index}")
         try:
-            current_tick = env.tick_data.loc[env.current_index]
+            current_tick = env.data.loc[env.current_index]
             current_price = current_tick.bid_price
             trends = np.array([
-                (current_price - env.tick_data.loc[env.current_index - offset].bid_price)
+                (current_price - env.data.loc[env.current_index - offset].bid_price)
                 if env.current_index - offset >= env.start_index else 0.0
                 for offset in self.trend_offsets
             ], dtype=np.float32)
@@ -43,7 +39,7 @@ class TrendObservationRMS(TrendObservation):
         except Exception as e:
             print(f"Error in _calculate_trend: {type(e).__name__}: {e}")
             print(f"current_index: {env.current_index}")
-            print(f"tick data: {env.tick_data}")
+            print(f"tick data: {env.data}")
             print(f"trend_offsets: {self.trend_offsets}")
             print(f"trend_history: {list(self.trend_history)}")
             print(f"rms_multiplier: {self.rms_multiplier}")

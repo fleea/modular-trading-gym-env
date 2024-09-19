@@ -6,7 +6,7 @@ import pandas as pd
 
 
 class PriceEnvironment(Protocol):
-    def get_current_tick_data(self) -> pd.Series:
+    def get_current_data(self) -> pd.Series:
         pass
 
 
@@ -39,11 +39,11 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
 
     def get_observation(self, env: PriceEnvironment) -> np.ndarray:
         try:
-            tick_data = env._get_tick_data()
+            data = env.get_current_data()
             min_price, max_price = self.get_price_range(env)
         
             # Normalize the price
-            normalized_price = (tick_data[self.column_name] - min_price) / (max_price - min_price)
+            normalized_price = (data[self.column_name] - min_price) / (max_price - min_price)
             
             return np.array([normalized_price], dtype=np.float32)
         except:
@@ -52,8 +52,7 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
             print(f"Min max price: {self.get_price_range(env)}")
             data = env.get_data()
             print(f"Data: {data}")
-            print(f"Tick data: {env._get_tick_data()}")
-            print(f"Tick data: {env.get_current_data()}")
+            print(f"Current data: {env.get_current_data()}")
             print(f"Data shape: {data.shape}")
             print(f"Data head:\n{data.head()}")
             print(f"Data tail:\n{data.tail()}")

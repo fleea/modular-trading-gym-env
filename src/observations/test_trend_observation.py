@@ -1,3 +1,5 @@
+# pytest src/observations/test_trend_observation.py
+
 import pytest
 import numpy as np
 import pandas as pd
@@ -17,7 +19,7 @@ def mock_env():
     env = Mock(spec=TrendEnvironment)
     env.current_step = 9  # the 10th step
     env.get_current_price.return_value = 1.35
-    env.tick_data = pd.DataFrame({
+    env.data = pd.DataFrame({
         'bid_price': [0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35],
         'ask_price': [0.91, 0.96, 1.01, 1.06, 1.11, 1.16, 1.21, 1.26, 1.31, 1.36]
     })
@@ -32,8 +34,8 @@ def test_get_space(trend_observation):
     np.testing.assert_array_equal(space.high, np.array([1, np.inf, np.inf, np.inf]))
 
 
-def test_get_min_periods(trend_observation):
-    assert trend_observation.get_min_periods() == 9  # max offset
+def test_get_start_padding(trend_observation):
+    assert trend_observation.get_start_padding() == 9  # max offset
 
 
 def test_calculate_trend(trend_observation, mock_env):
@@ -65,7 +67,7 @@ def test_calculate_trend_insufficient_data(trend_observation):
     mock_env = Mock(spec=TrendEnvironment)
     mock_env.current_step = 4  # Not enough data for all offsets
     mock_env.get_current_price.return_value = 1.1
-    mock_env.tick_data = pd.DataFrame({
+    mock_env.data = pd.DataFrame({
         'bid_price': [0.9, 0.95, 1.0, 1.05, 1.1],
         'ask_price': [0.91, 0.96, 1.01, 1.06, 1.11]
     })

@@ -8,11 +8,11 @@ class MockPriceEnvironment:
         self.current_price = current_price
         self.historical_prices = historical_prices
 
-    def get_current_tick_data(self):
+    def get_current_data(self):
         return pd.Series({'bid_price': self.current_price})
 
     def __getitem__(self, key):
-        if key == 'tick_data':
+        if key == 'data':
             return pd.DataFrame({'bid_price': self.historical_prices})
 
 @pytest.fixture
