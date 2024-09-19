@@ -66,9 +66,12 @@ class MultipleBuyEnvironment(BaseEnvironment):
         self.observation_space = observation.get_space()
         self.current_index = self.start_index
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed=None):
         super().reset(seed=seed)
-        self.current_index = self.start_index
+        # LOGGING
+        # print(f"Reset called. Current index: {self.current_index}")
+        # print(f"Tick data shape: {self.tick_data.shape}")
+        # print(f"Tick data index: {self.tick_data.index}")
         return self._get_observation(), self._get_info()
 
     def step(

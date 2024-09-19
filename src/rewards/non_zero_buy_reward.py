@@ -16,7 +16,9 @@ def NonZeroBuyReward(self: BaseEnvironment):
     if current_step_data is None or previous_step_data is None:
         return 0
 
-    delta_bid_price = 1000 * (
+    # 1 for stock
+    # 1000 for forex
+    delta_bid_price = 1 * (
         current_step_data["bid_price"] - previous_step_data["bid_price"]
     )
 

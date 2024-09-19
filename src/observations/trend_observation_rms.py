@@ -23,6 +23,10 @@ class TrendObservationRMS(TrendObservation):
         return spaces.Box(low=low, high=high, shape=shape, dtype=np.float32)
 
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
+        # LOGGING
+        # print(f"Calculating trend. Current index: {env.current_index}")
+        # print(f"Tick data shape: {env.tick_data.shape}")
+        # print(f"Tick data index: {env.tick_data.index}")
         try:
             current_tick = env.tick_data.loc[env.current_index]
             current_price = current_tick.bid_price

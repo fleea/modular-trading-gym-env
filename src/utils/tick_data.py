@@ -91,7 +91,13 @@ def simulate_prices(initial_price: float, commands: List[PriceCommand]) -> pd.Da
     return pd.DataFrame(data), total_max_profit
 
 
-def get_data(size=1000, initial_price: float = 1.015055, trend_probability: float = 0.5):
+def get_data(
+        size=1000, 
+        initial_price: float = 1.015055, 
+        trend_probability: float = 0.5, 
+        base_delta = 0.001,
+        base_spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001))
+        ):
     total_points = size
 
     # Calculate average segment length based on total_points
@@ -113,8 +119,7 @@ def get_data(size=1000, initial_price: float = 1.015055, trend_probability: floa
         segment_length = min(segment_length, total_points - total_steps)
         # print(f"segment_length: {segment_length}")
 
-
-        spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001)) # Around 0.00011
+        # spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001)) # Around 0.00011
         # print(f"base_spread: {spread_func}")
 
 
@@ -122,13 +127,13 @@ def get_data(size=1000, initial_price: float = 1.015055, trend_probability: floa
 
         # print(f"direction: {direction}")
         # Generate random delta function
-        base_delta = random.uniform(0.0005, 0.002) * direction.value
+        # base_delta = base_delta_func * direction.value
         # print(f"base_delta: {base_delta}")
 
         command = PriceCommand(
             step_amount=segment_length,
-            spread_func=spread_func,
-            delta_func=create_delta_func(direction)
+            spread_func=base_spread_func,
+            delta_func=create_delta_func(direction, base_delta)
         )
 
         # print (command)
@@ -170,9 +175,21 @@ def plot_tick_data(df: pd.DataFrame):
     plt.show()
 
 
+
+def get_real_data_per_year(file_path: str, min_year: int, max_year: int):
+    df = pd.read_csv(file_path)
+    df['bid_price'] = df['close'] * (1 - 0.0005)
+    df['ask_price'] = df['close'] * (1 + 0.0005)
+    df['timestamp'] = pd.to_datetime(df['time'])
+    filtered_df = df[(df['timestamp'].dt.year >= min_year) & (df['timestamp'].dt.year <= max_year)]
+    filtered_df.reset_index(drop=True, inplace=True)
+    return filtered_df
+
+
 if __name__ == "__main__":
     # print(get_data())
-    df, max_profit = get_data()
+    df, max_profit = get_data(250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1)))
+    print(df, max_profit)
     # df.to_csv('output.csv', index=False)
     # print(df)
     # print(f"Generated {len(df)} data points")

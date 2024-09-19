@@ -131,7 +131,7 @@ def test_rms_calculation(trend_observation_rms, mock_env):
     # Apply RMS normalization
     actual_multiplier = get_multiplier(trend_observation_rms.trend_history)
     expected_trends = raw_trends * actual_multiplier * trend_observation_rms.rms_multiplier
-    print(f"trends: {trends}, expected_trends: {expected_trends}")
+    # print(f"trends: {trends}, expected_trends: {expected_trends}")
 
     np.testing.assert_array_almost_equal(trends, expected_trends)
 

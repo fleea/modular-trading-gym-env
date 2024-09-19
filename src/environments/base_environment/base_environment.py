@@ -212,6 +212,12 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
             return self.data.iloc[index]
         except IndexError:
             return None
+        
+    def get_data(self) -> pd.DataFrame:
+        return self.data
+
+    def get_current_data(self) -> pd.Series:
+        return self.data.loc[self.current_index]
 
 
 __all__ = ["BaseEnvironment"]

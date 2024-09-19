@@ -3,7 +3,6 @@ from datetime import datetime
 import pandas as pd
 from typing import List
 
-# Import the functions and classes we're testing
 from src.utils.tick_data import (
     Direction,
     PriceCommand,

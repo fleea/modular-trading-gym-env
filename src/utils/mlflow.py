@@ -88,7 +88,8 @@ class MLflowCallback(BaseCallback):
                     print("current_index", info["current_index"])
                     mlflow.log_metric(f"eval_test/final_equity", info["final_equity"], step=self.num_timesteps)
                     break
-
+        
+        
             # mean_reward_test, std_reward_test = evaluate_policy(model, test_env, n_eval_episodes=timesteps_per_eval, deterministic=True)
             # mlflow.log_metric(f"eval_test/mean_reward", mean_reward_test, step=self.num_timesteps)
             # mlflow.log_metric(f"eval_test/std_reward", std_reward_test, step=self.num_timesteps)
