@@ -17,6 +17,7 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import train_test_split
 from src.utils.data_cleaning import filter_noise
 import numpy as np
+import random
 
 def start():
     experiment_name = "PPO Trading Agent - Expanding Window"
@@ -26,9 +27,9 @@ def start():
     train_timesteps = 4_500_000
     # n_eval_episodes = 100 # For both train and test, on evaluate_policy
     # tick_data, max_profit = get_data(1000)  # Generate 1000 data points
-    tick_data = get_real_data_per_year('src/data/SP_SPX_1D.csv', 2013, 2023)
-    tick_data = filter_noise(tick_data, 1, 'bid_price')
-    # tick_data, max_profit = get_data(250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1)))
+    # tick_data = get_real_data_per_year('src/data/SP_SPX_1D.csv', 2013, 2023)
+    # tick_data = filter_noise(tick_data, 1, 'bid_price')
+    tick_data, max_profit = get_data(250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1)))
     print(f"Tick data shape: {tick_data.shape}")
     # print(f"Max profit: {max_profit}")
     # mlflow.log_param("max_profit", max_profit)

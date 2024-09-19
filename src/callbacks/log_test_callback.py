@@ -1,14 +1,14 @@
 import numpy as np
 import mlflow
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.evaluation import evaluate_policy
 
 
 LOG_DIR="./mlflow"
 
-class MLflowCallback(BaseCallback):
+
+class LogTestCallback(BaseCallback):
     def __init__(self, check_freq: int = 1000, name: str = "training", verbose: int = 1, test_env = None):
-        super(MLflowCallback, self).__init__(verbose)
+        super(LogTestCallback, self).__init__(verbose)
         self.check_freq = check_freq
         self.current_episode_reward = 0
         self.all_episode_equities = []
@@ -107,15 +107,4 @@ class MLflowCallback(BaseCallback):
     def __call__(self, locals_, globals_):
         self.log_locals(self.name, locals_["infos"], self.step_count)
         self.step_count += 1
-        # Return False to continue the evaluation
         return False
-
-    # def on_training_end(self) -> None:
-    #     try:
-    #         # Log final metrics
-    #         if self.all_episode_equities:
-    #             final_mean_equity = np.mean(self.all_episode_equities[-100:])
-    #             mlflow.log_metric("training/final_mean_equity", final_mean_equity)
-    #             print(f"Final Mean Equity (last 100 episodes): {final_mean_equity}")
-    #     except Exception as e:
-    #         print(f"Warning: Failed to log final metrics to MLflow. Error: {e}")
