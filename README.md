@@ -2,7 +2,6 @@
 
 This project implements a flexible reinforcement learning environment for simulating financial trading scenarios. It's based on the OpenAI Gymnasium framework and designed to be modular and extensible.
 
-
 ## Features
 
 - Multiple environment types that can be extended and customized
@@ -13,6 +12,7 @@ This project implements a flexible reinforcement learning environment for simula
 - Example of agent implementation is located in `src/agents` folder
 
 ## Design Principles on Separation of Concerns
+
 - **Lean Base Environment**: A streamlined BaseEnvironment class provides core functionality for trading simulations, handling essential operations like order management and account state updates.
 - **Pluggable Reward Functions**: Reward functions are easily interchangeable, allowing rapid experimentation with different reward strategies without modifying the environment code.
 - **Extensible Observation Space**: Observation types are defined through a separate BaseObservation class, enabling easy creation and swapping of different state representations.
@@ -21,12 +21,14 @@ This project implements a flexible reinforcement learning environment for simula
 ## Installation
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/your-username/modular-trading-gym-env.git
    cd modular-trading-gym-env
    ```
 
 2. Create a virtual environment (optional but recommended):
+
    ```
    python -m venv venv
    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
@@ -35,6 +37,7 @@ This project implements a flexible reinforcement learning environment for simula
 3. Install the required packages:
    ```
    pip install -r requirements.txt
+   pip install mlflow
    ```
 
 ## Project Structure
@@ -56,10 +59,10 @@ To run a training session with the PPO agent on the MultipleBuyGear environment:
 export PYTHONPATH=$PYTHONPATH:. # Make sure to set the PYTHONPATH on root
 python3 src/agents/multiple_buy_agent.py # Run an agent
 python3 src/agents/single_buy_agent.py
+python3 src/agents/multiple_buy_agent_expanding_window.py
 ```
 
 Tick data is still mock, feel free to load your own
-
 
 ## Customization
 
@@ -89,8 +92,8 @@ To run the tests:
 pytest
 ```
 
-
 ## Generate requirements automatically
+
 ```bash
 pip3 install pipreqs
 pip3 install pip-tools

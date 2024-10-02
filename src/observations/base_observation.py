@@ -22,9 +22,9 @@ class BaseObservation(ABC, Generic[EnvType]):
         """
         pass
 
-    def get_min_periods(self) -> int:
+    def get_start_padding(self) -> int:
         """
-        Returns the minimum number of periods required for the observation.
+        Returns the padding required for the observation.
         Default is 0 if not implemented in the subclass.
         Also means the current_step set in the initialisation of the environment state.
         """
