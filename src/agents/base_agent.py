@@ -21,6 +21,7 @@ class BaseAgent:
             test_size: float = 0.1, 
             n_splits: int = 1,
             num_cores: int = 1,
+            main_price_column: str = "bid_price",
         ):
         self.experiment_name = experiment_name
         self.data = data
@@ -34,6 +35,7 @@ class BaseAgent:
         self.test_size = test_size
         self.n_splits = n_splits
         self.num_cores = num_cores
+        self.main_price_column = main_price_column
 
     def start(self):
         if self.model is None:
@@ -75,15 +77,14 @@ class BaseAgent:
             mlflow.log_param(f"model_kwargs/{key}", value)
 
     def log_data(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
-        # LOG TRAINING DATA AND TEST DATA
         mlflow.log_param("train_data_shape", train_data.shape)
-        mlflow.log_param("train_data_buy_and_hold_diff", train_data.iloc[-1]['bid_price'] - train_data.iloc[0]['bid_price'])
+        mlflow.log_param("train_data_buy_and_hold_diff", train_data.iloc[-1][self.main_price_column] - train_data.iloc[0][self.main_price_column])
         mlflow.log_param("test_data_shape", test_data.shape)
-        mlflow.log_param("test_data_buy_and_hold_diff", test_data.iloc[-1]['bid_price'] - test_data.iloc[0]['bid_price'])
+        mlflow.log_param("test_data_buy_and_hold_diff", test_data.iloc[-1][self.main_price_column] - test_data.iloc[0][self.main_price_column])
         for i, row in train_data.iterrows():
-            mlflow.log_metric(f"training/data", row["bid_price"], step=i)
+            mlflow.log_metric(f"training/data", row[self.main_price_column], step=i)
         for i, row in test_data.iterrows():
-            mlflow.log_metric(f"test/data", row["bid_price"], step=i)
+            mlflow.log_metric(f"test/data", row[self.main_price_column], step=i)
 
         # SETUP ENVIRONMENTS
         environment_name = get_environment_name(self.env_entry_point)

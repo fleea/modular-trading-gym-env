@@ -18,9 +18,9 @@ class TrendObservationPercentage(TrendObservation):
         current_price = env.get_current_price(OrderAction.CLOSE)
         trends = []
         for offset in self.trend_offsets:
-            if env.current_step - offset >= 0:
-                previous_time_step = env.current_step - offset
-                previous_data = env.data.loc[previous_time_step]
+            if env.current_index - offset >= env.start_index:
+                previous_time_index = env.current_index - offset
+                previous_data = env.data.loc[previous_time_index]
                 past_price = previous_data.bid_price # If OrderAction.CLOSE right now, what is the price we get?
                 percentage_change = ((current_price - past_price) / past_price) * 100
                 trends.append(percentage_change)

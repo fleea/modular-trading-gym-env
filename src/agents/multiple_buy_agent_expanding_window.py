@@ -1,3 +1,6 @@
+# THIS AGENT IS NOT USING BASE_AGENT YET
+# PROBABLY WILL BE DEPRECATED
+
 # export PYTHONPATH=$PYTHONPATH:.
 # python3.12 src/agents/multiple_buy_agent_expanding_window.py
 # Need to run in the root dir so the mlruns directory is located in the root

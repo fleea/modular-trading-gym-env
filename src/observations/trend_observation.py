@@ -8,7 +8,7 @@ import pandas as pd
 
 # Define a protocol for environments that can use TrendObservation
 class TrendEnvironment(Protocol):
-    current_step: int
+    current_index: int
     data: pd.DataFrame
     orders: List[Any]
 
@@ -39,8 +39,8 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
         current_price = env.get_current_price(OrderAction.CLOSE)
         trends = [
-            (current_price - env.data.loc[env.current_step - offset].bid_price) * 100
-            if env.current_step - offset >= 0 else 0.0
+            (current_price - env.data.loc[env.current_index - offset].bid_price) * 100
+            if env.current_index - offset >= env.start_index else 0.0
             for offset in self.trend_offsets
         ]
         return trends

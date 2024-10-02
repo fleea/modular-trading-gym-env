@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from gymnasium import spaces
 from src.environments.base_environment.base_environment import BaseEnvironment
-from src.interfaces.data_interface import TickData
 from src.interfaces.order_interface import OrderObjectType, OrderType, OrderAction
 from src.observations.base_observation import BaseObservation
 from src.enums.closing_strategy_enum import OrderClosingStrategy
@@ -64,9 +63,11 @@ class MultipleBuyEnvironment(BaseEnvironment):
         self.action_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = observation.get_space()
 
-    def reset(self, seed=None):
+    def reset(self, seed =None):
         super().reset(seed=seed)
-        return self._get_observation(), self._get_info()
+        observation = self._get_observation()
+        assert self.observation_space.contains(observation), "Observation not in space"
+        return observation, self._get_info()
 
     def step(
         self, action: np.ndarray

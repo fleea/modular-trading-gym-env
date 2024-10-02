@@ -1,3 +1,6 @@
+# THIS AGENT IS NOT USING BASE_AGENT YET
+# PROBABLY WILL BE DEPRECATED
+
 # export PYTHONPATH=$PYTHONPATH:.
 # python3.12 src/agents/multiple_buy_agent.py
 # Need to run in the root dir so the mlruns directory is located in the root
@@ -11,7 +14,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from src.observations.trend_observation_rms import TrendObservationStd
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
 from src.utils.environment import get_env
-from src.utils.mlflow import MLflowCallback, LOG_DIR
+from src.callbacks.log_test_callback import LogTestCallback, LOG_DIR
 from src.utils.tick_data import get_data, plot_tick_data
 import pandas as pd
 
@@ -74,7 +77,7 @@ def start():
         model = PPO("MlpPolicy", env, verbose=1, **model_params)
 
         # Set up MLflow callback
-        mlflow_callback = MLflowCallback(check_freq=10000)
+        mlflow_callback = LogTestCallback(check_freq=10000)
 
         # Log parameters
         mlflow.log_params(model_params)
