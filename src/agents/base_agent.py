@@ -62,6 +62,8 @@ class BaseAgent:
             else:
                 train_data, test_data = train_test_split(self.data, test_size=self.test_size, shuffle=False)
                 self.log_data(train_data, test_data) 
+
+        return self.model
     
     def setup_experiment(self):
         mlflow.set_experiment(self.experiment_name)
@@ -93,7 +95,7 @@ class BaseAgent:
         base_env_kwargs['data'] = train_data
         print(f"Environment name: {environment_name}")
         print(f"Env entry point: {self.env_entry_point}")
-        env = SubprocVecEnv([lambda: get_env(environment_name, self.env_entry_point, LOG_DIR, base_env_kwargs) for _ in range(self.num_cores)])
+        env = DummyVecEnv([lambda: get_env(environment_name, self.env_entry_point, LOG_DIR, base_env_kwargs) for _ in range(self.num_cores)])
 
         # SETUP TEST ENV
         # Evaluate on test data
@@ -115,7 +117,7 @@ class BaseAgent:
 
         # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
         model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
-        
+        mlflow.pytorch.log_model(model, "model")
         
 def get_environment_name(env_path: str) -> str:
     """

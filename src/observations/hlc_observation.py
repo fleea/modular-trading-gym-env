@@ -29,9 +29,10 @@ class HLCObservation(BaseObservation[HLCEnvironment]):
 
     def get_observation(self, env: HLCEnvironment) -> np.ndarray:
         current_data = env.get_current_data()
-        observation = current_data[self.column_names].values
+        close = current_data['close']
+        observation = [close - current_data[col] for col in self.column_names]
         return np.array(observation, dtype=np.float32)
     
     def get_start_padding(self) -> int:
-        return 60 # Monthly start padding
+        return 31 # Monthly start padding
 

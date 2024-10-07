@@ -30,8 +30,8 @@ def augment_with_hlc(
     # Resample the data to daily, weekly, and monthly frequencies
     
     daily = df.resample('D').agg({'high': 'max', 'low': 'min', 'close': 'last'}).shift(1).ffill()
-    weekly = df.resample('W-MON').agg({'high': 'max', 'low': 'min', 'close': 'last'}).shift(1).ffill()
-    monthly = df.resample('ME').agg({'high': 'max', 'low': 'min', 'close': 'last'}).shift(1).ffill()
+    weekly = df.resample('W').agg({'high': 'max', 'low': 'min', 'close': 'last'}).ffill()
+    monthly = df.resample('MS').agg({'high': 'max', 'low': 'min', 'close': 'last'}).shift(1).ffill()
 
     # Rename columns to avoid collisions
 

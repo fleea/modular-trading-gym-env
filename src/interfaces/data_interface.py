@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class TickData:
     ask_price: float  # purchase price, on open position

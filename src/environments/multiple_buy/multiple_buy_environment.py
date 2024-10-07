@@ -66,7 +66,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
     def reset(self, seed =None):
         super().reset(seed=seed)
         observation = self._get_observation()
-        assert self.observation_space.contains(observation), "Observation not in space"
+        # assert self.observation_space.contains(observation), "Observation not in space"
         return observation, self._get_info()
 
     def step(

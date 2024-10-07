@@ -14,7 +14,7 @@ def start():
     experiment_name = "PPO - MLP Stock"
     train_timesteps = 2_000_000
     data = get_real_data_per_year('src/data/SP_SPX_1D.csv', 2013, 2023)
-    # data = filter_noise(data, 1, 'bid_price')
+    data = filter_noise(data, 1, 'close')
     trend_offset = [1, 2, 3, 10, 40]
     observation = TrendObservationPercentageArrayStock(trend_offset)
     env_kwargs = {

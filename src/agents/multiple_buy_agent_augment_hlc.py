@@ -11,17 +11,20 @@ from src.agents.base_agent import BaseAgent
 import pandas as pd
 from src.preprocessing.hlc import augment_with_hlc
 from src.observations.hlc_observation import HLCObservation
-
-import weakref
+from src.utils.tick_data import get_real_data_per_year
 
 def start():
     experiment_name = "PPO - Stock - Preprocessing HLC"
-    train_timesteps = 30_000
-    df = pd.read_csv('src/data/SP_SPX_1D.csv')
+    train_timesteps = 4_000_000
+
+    df = get_real_data_per_year('src/data/SP_SPX_1D.csv', 2013, 2023)
+    # df = filter_noise(df, 1, 'close')
+    # df = pd.read_csv('src/data/SP_SPX_1D.csv')
     df['time'] = pd.to_datetime(df['time'])
     df['timestamp'] = df['time']
     df.set_index('time', inplace=True)
     data = augment_with_hlc(df)
+    
     data.reset_index(drop=True, inplace=True)
     observation = HLCObservation()
     env_kwargs = {
@@ -57,24 +60,11 @@ def start():
         train_timesteps = train_timesteps,
         check_freq = 1000,
         test_size = 0.1,
-        n_splits = 5,
+        n_splits = 1,
         num_cores = 1,
         main_price_column = "close",
     )
     agent.start()
 
-
-def has_weakref(obj):
-    try:
-        weakref.ref(obj)
-        return True
-    except TypeError:
-        return False
-
-# Example usage
-
 if __name__ == "__main__":
-    print(has_weakref(LogTestCallback))
-    print(has_weakref(NonZeroBuyRewardStock))
-    print(has_weakref(HLCObservation))
     start()
