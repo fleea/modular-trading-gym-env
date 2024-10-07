@@ -1,6 +1,5 @@
 # pytest src/environments/base_environment/test_base_environment.py
 import unittest
-from decimal import Decimal
 import pandas as pd
 import numpy as np
 from gymnasium import spaces

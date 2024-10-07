@@ -1,6 +1,5 @@
 # Extending trend_observation
 from .trend_observation import TrendObservation, TrendEnvironment
-from src.interfaces.order_interface import OrderAction
 from typing import List
 from gymnasium import spaces
 import numpy as np

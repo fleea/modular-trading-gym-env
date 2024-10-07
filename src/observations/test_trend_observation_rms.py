@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import pandas as pd
-from pytest import approx
 from unittest.mock import Mock
 from src.observations.trend_observation import TrendEnvironment
 from src.observations.trend_observation_rms import TrendObservationRMS, get_multiplier
@@ -114,11 +113,6 @@ def test_rms_calculation(trend_observation_rms, mock_env):
             np.array([3.0, 4.0, 5.0]),
         ]
     )
-
-    # Calculate the expected RMS
-    all_values = [1.0, 2.0, 3.0, 2.0, 3.0, 4.0, 3.0, 4.0, 5.0]
-    expected_rms = np.sqrt(np.mean(np.square(all_values)))
-    expected_multiplier = 1 / expected_rms
 
     # Test the full calculation
     mock_env.current_index = 5

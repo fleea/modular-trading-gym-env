@@ -102,10 +102,8 @@ class TestBuyEnvironment(unittest.TestCase):
         self.env.step(np.array([0.7], dtype=np.float32))
         self.env.step(np.array([0.7], dtype=np.float32))
         self.env.step(np.array([0.7], dtype=np.float32))
-        print(self.env.orders)
         self.env.current_index = 14
         self.env.step(np.array([0.1], dtype=np.float32))
-        print(self.env.closed_orders)
         self.assertEqual(len(self.env.orders), 0)
         self.assertEqual(len(self.env.closed_orders), 1)
 

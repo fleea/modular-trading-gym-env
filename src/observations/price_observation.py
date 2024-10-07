@@ -48,7 +48,7 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
             )
 
             return np.array([normalized_price], dtype=np.float32)
-        except:
+        except Exception as e:
             print(f"Current index: {env.current_index}")
             print(f"Column name: {self.column_name}")
             print(f"Min max price: {self.get_price_range(env)}")
@@ -58,3 +58,4 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
             print(f"Data shape: {data.shape}")
             print(f"Data head:\n{data.head()}")
             print(f"Data tail:\n{data.tail()}")
+            raise RuntimeError("Failed to get observation") from e

@@ -7,10 +7,9 @@
 from stable_baselines3 import PPO
 from src.observations.trend_observation_rms import TrendObservationRMS
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
-from src.utils.tick_data import get_real_data_per_year, get_data
+from src.utils.tick_data import get_data
 from src.callbacks.log_test_callback import LogTestCallback
 from src.agents.base_agent import BaseAgent
-from src.utils.data_cleaning import filter_noise
 import random
 
 

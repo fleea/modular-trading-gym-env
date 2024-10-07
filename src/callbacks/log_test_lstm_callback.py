@@ -31,6 +31,7 @@ class LogTestLSTMCallback(LogTestCallback):
                     episode_start=episode_starts,
                     deterministic=True,
                 )
+                lstm_states = _states
                 obs, rewards, dones, infos = test_env.step(action)
 
                 if dones.any():

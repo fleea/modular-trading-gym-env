@@ -1,7 +1,7 @@
 import mlflow
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+from stable_baselines3.common.vec_env import DummyVecEnv
 from src.utils.environment import get_env
 from src.callbacks.log_test_callback import LogTestCallback, LOG_DIR
 from sklearn.model_selection import TimeSeriesSplit
@@ -95,9 +95,9 @@ class BaseAgent:
             - test_data.iloc[0][self.main_price_column],
         )
         for i, row in train_data.iterrows():
-            mlflow.log_metric(f"training/data", row[self.main_price_column], step=i)
+            mlflow.log_metric("training/data", row[self.main_price_column], step=i)
         for i, row in test_data.iterrows():
-            mlflow.log_metric(f"test/data", row[self.main_price_column], step=i)
+            mlflow.log_metric("test/data", row[self.main_price_column], step=i)
 
         # SETUP ENVIRONMENTS
         environment_name = get_environment_name(self.env_entry_point)

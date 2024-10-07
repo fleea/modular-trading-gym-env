@@ -1,7 +1,7 @@
 import numpy as np
 import mlflow
 from stable_baselines3.common.callbacks import BaseCallback
-
+import logging
 
 LOG_DIR = "./mlflow"
 
@@ -55,8 +55,8 @@ class LogTestCallback(BaseCallback):
                 )
 
         except Exception as e:
-            print(f"Warning: Failed to log metrics to MLflow. Error: {e}")
-            print(self.locals)
+            logging.warning(f"Failed to log metrics to MLflow. Error: {e}")
+            logging.debug(f"Local variables: {self.locals}")
 
     def evaluate_model(self):
         model = self.model
@@ -80,6 +80,7 @@ class LogTestCallback(BaseCallback):
                     episode_start=episode_starts,
                     deterministic=True,
                 )
+                lstm_states = _states
                 obs, rewards, dones, infos = test_env.step(action)
 
                 if dones.any():

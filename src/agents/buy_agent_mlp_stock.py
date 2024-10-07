@@ -7,7 +7,7 @@ from src.observations.trend_observation_percentage_array_stock import (
     TrendObservationPercentageArrayStock,
 )
 from src.rewards.non_zero_buy_reward import NonZeroBuyReward
-from src.utils.tick_data import get_real_data_per_year, get_data
+from src.utils.tick_data import get_real_data_per_year
 from src.callbacks.log_test_callback import LogTestCallback
 from src.agents.base_agent import BaseAgent
 from src.utils.data_cleaning import filter_noise

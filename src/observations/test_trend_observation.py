@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from pytest import approx
 from unittest.mock import Mock
-from src.interfaces.order_interface import OrderAction
 from src.observations.trend_observation import TrendObservation, TrendEnvironment
 
 
