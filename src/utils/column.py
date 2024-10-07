@@ -1,7 +1,9 @@
 import pandas as pd
 
 
-def augment_col_difference(df: pd.DataFrame, col_names: list, window: int = 20) -> pd.DataFrame:
+def augment_col_difference(
+    df: pd.DataFrame, col_names: list, window: int = 20
+) -> pd.DataFrame:
     """
     Augment the dataframe with the difference between consecutive rows for multiple columns.
 
@@ -23,8 +25,9 @@ def augment_col_difference(df: pd.DataFrame, col_names: list, window: int = 20) 
         col_change = f"{col}_change"
         df_result[col_change] = differences[col]
         # Compute rolling standard deviation on the change column
-        df_result[f"{col_change}_std"] = df_result[col_change].rolling(window=window, min_periods=1).std()
-
+        df_result[f"{col_change}_std"] = (
+            df_result[col_change].rolling(window=window, min_periods=1).std()
+        )
 
     # Add the new columns to the DataFrame
     return df_result

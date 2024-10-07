@@ -8,7 +8,7 @@ from src.observations.base_observation import BaseObservation
 from src.enums.closing_strategy_enum import OrderClosingStrategy
 
 
-class MultipleBuyEnvironment(BaseEnvironment):
+class BuyEnvironment(BaseEnvironment):
     """
     A trading environment supporting multiple buy orders with a gear-based action space.
 
@@ -26,7 +26,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
         self,
         initial_balance: int,
         data: pd.DataFrame,
-        observation: BaseObservation["MultipleBuyEnvironment"],
+        observation: BaseObservation["BuyEnvironment"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
         max_orders: int = 3,
@@ -34,12 +34,12 @@ class MultipleBuyEnvironment(BaseEnvironment):
         start_index: int = 0,
     ):
         """
-        Initialize the multiple buy gear trading environment.
+        Initialize the buy trading environment.
 
         Args:
             initial_balance (int): The initial account balance.
             data (pd.DataFrame): DataFrame of data for the trading session.
-            observation (BaseObservation[MultipleBuyGearEnvironment]): Observation class with get_space and get_observation methods.
+            observation (BaseObservation[BuyEnvironment]): Observation class with get_space and get_observation methods.
             reward_func (Callable[[Self, float], float]): A function to calculate rewards.
             lot (float): The lot size for each order.
             max_orders (int): Maximum number of concurrent orders allowed.
@@ -52,7 +52,10 @@ class MultipleBuyEnvironment(BaseEnvironment):
             )
 
         super().__init__(
-            initial_balance, data=data, start_index=start_index + start_padding, max_index=len(data) + start_index - 1, 
+            initial_balance,
+            data=data,
+            start_index=start_index + start_padding,
+            max_index=len(data) + start_index - 1,
         )
 
         self.observation = observation
@@ -63,7 +66,7 @@ class MultipleBuyEnvironment(BaseEnvironment):
         self.action_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = observation.get_space()
 
-    def reset(self, seed =None):
+    def reset(self, seed=None):
         super().reset(seed=seed)
         observation = self._get_observation()
         # assert self.observation_space.contains(observation), "Observation not in space"
@@ -160,4 +163,3 @@ class MultipleBuyEnvironment(BaseEnvironment):
         return (
             current.ask_price if order_action == OrderAction.OPEN else current.bid_price
         )
-

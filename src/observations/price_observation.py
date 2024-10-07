@@ -11,14 +11,9 @@ class PriceEnvironment(Protocol):
 
 
 class PriceObservation(BaseObservation[PriceEnvironment]):
-    def __init__(self, column_name: str = 'close'):
+    def __init__(self, column_name: str = "close"):
         # Define the observation space for a single normalized price
-        self.observation_space = spaces.Box(
-            low=0,
-            high=1,
-            shape=(1,),
-            dtype=np.float32
-        )
+        self.observation_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.min_price = None
         self.max_price = None
         self.column_name = column_name
@@ -41,10 +36,12 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
         try:
             data = env.get_current_data()
             min_price, max_price = self.get_price_range(env)
-        
+
             # Normalize the price
-            normalized_price = (data[self.column_name] - min_price) / (max_price - min_price)
-            
+            normalized_price = (data[self.column_name] - min_price) / (
+                max_price - min_price
+            )
+
             return np.array([normalized_price], dtype=np.float32)
         except:
             print(f"Current index: {env.current_index}")
@@ -56,4 +53,3 @@ class PriceObservation(BaseObservation[PriceEnvironment]):
             print(f"Data shape: {data.shape}")
             print(f"Data head:\n{data.head()}")
             print(f"Data tail:\n{data.tail()}")
-            

@@ -3,11 +3,17 @@ import mlflow
 from stable_baselines3.common.callbacks import BaseCallback
 
 
-LOG_DIR="./mlflow"
+LOG_DIR = "./mlflow"
 
 
 class LogTestCallback(BaseCallback):
-    def __init__(self, check_freq: int = 1000, name: str = "training", verbose: int = 1, test_env = None):
+    def __init__(
+        self,
+        check_freq: int = 1000,
+        name: str = "training",
+        verbose: int = 1,
+        test_env=None,
+    ):
         super(LogTestCallback, self).__init__(verbose)
         self.check_freq = check_freq
         self.current_episode_reward = 0
@@ -51,7 +57,6 @@ class LogTestCallback(BaseCallback):
         except Exception as e:
             print(f"Warning: Failed to log metrics to MLflow. Error: {e}")
             print(self.locals)
-    
 
     def evaluate_model(self):
         model = self.model
@@ -69,14 +74,22 @@ class LogTestCallback(BaseCallback):
             # Episode start signals are used to reset the lstm states
             episode_starts = np.ones((num_envs,), dtype=bool)
             while True:
-                action, _states = model.predict(obs, state=lstm_states, episode_start=episode_starts, deterministic=True)
+                action, _states = model.predict(
+                    obs,
+                    state=lstm_states,
+                    episode_start=episode_starts,
+                    deterministic=True,
+                )
                 obs, rewards, dones, infos = test_env.step(action)
 
                 if dones.any():
                     info = infos[0]
-                    mlflow.log_metric(f"eval_test/final_equity", info["final_equity"], step=self.num_timesteps)
+                    mlflow.log_metric(
+                        f"eval_test/final_equity",
+                        info["final_equity"],
+                        step=self.num_timesteps,
+                    )
                     break
-
 
     def _on_step(self) -> bool:
         """
@@ -86,7 +99,7 @@ class LogTestCallback(BaseCallback):
         if self.n_calls % self.check_freq == 0:
             self.evaluate_model()
         return True
-    
+
     def __call__(self, locals_, globals_):
         """
         This method is called at each call of the callback.

@@ -2,8 +2,15 @@ from .log_test_callback import LogTestCallback
 import mlflow
 import numpy as np
 
+
 class LogTestLSTMCallback(LogTestCallback):
-    def __init__(self, check_freq: int = 1000, name: str = "training", verbose: int = 1, test_env = None):
+    def __init__(
+        self,
+        check_freq: int = 1000,
+        name: str = "training",
+        verbose: int = 1,
+        test_env=None,
+    ):
         super().__init__(check_freq, name, verbose, test_env)
 
     def evaluate_model(self):
@@ -18,10 +25,19 @@ class LogTestLSTMCallback(LogTestCallback):
             # Episode start signals are used to reset the lstm states
             episode_starts = np.ones((num_envs,), dtype=bool)
             while True:
-                action, _states = model.predict(obs, state=lstm_states, episode_start=episode_starts, deterministic=True)
+                action, _states = model.predict(
+                    obs,
+                    state=lstm_states,
+                    episode_start=episode_starts,
+                    deterministic=True,
+                )
                 obs, rewards, dones, infos = test_env.step(action)
 
                 if dones.any():
                     info = infos[0]
-                    mlflow.log_metric(f"eval_test/final_equity", info["final_equity"], step=self.num_timesteps)
+                    mlflow.log_metric(
+                        f"eval_test/final_equity",
+                        info["final_equity"],
+                        step=self.num_timesteps,
+                    )
                     break

@@ -1,9 +1,8 @@
-from src.environments.multiple_buy.multiple_buy_environment import MultipleBuyEnvironment
-from src.environments.base_environment.base_environment import BaseEnvironment
-from src.interfaces.data_interface import StockData
+from src.environments.buy_environment.buy_environment import BuyEnvironment
 from src.interfaces.order_interface import OrderAction
 
-class MultipleBuyEnvironmentStock(MultipleBuyEnvironment):
+
+class BuyEnvironmentStock(BuyEnvironment):
     def __init__(self, spread: float, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.spread = spread

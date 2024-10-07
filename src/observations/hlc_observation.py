@@ -3,7 +3,18 @@ from typing import List, Protocol, Any
 from gymnasium import spaces
 import numpy as np
 import pandas as pd
-from src.preprocessing.hlc import d_high, d_low, d_close, w_high, w_low, w_close, m_high, m_low, m_close
+from src.preprocessing.hlc import (
+    d_high,
+    d_low,
+    d_close,
+    w_high,
+    w_low,
+    w_close,
+    m_high,
+    m_low,
+    m_close,
+)
+
 
 class HLCEnvironment(Protocol):
     current_index: int
@@ -13,12 +24,19 @@ class HLCEnvironment(Protocol):
     def get_current_data(self) -> pd.Series:
         pass
 
+
 class HLCObservation(BaseObservation[HLCEnvironment]):
     def __init__(self):
         self.column_names = [
-            d_high, d_low, d_close,
-            w_high, w_low, w_close,
-            m_high, m_low, m_close
+            d_high,
+            d_low,
+            d_close,
+            w_high,
+            w_low,
+            w_close,
+            m_high,
+            m_low,
+            m_close,
         ]
 
     def get_space(self) -> spaces.Space:
@@ -29,10 +47,9 @@ class HLCObservation(BaseObservation[HLCEnvironment]):
 
     def get_observation(self, env: HLCEnvironment) -> np.ndarray:
         current_data = env.get_current_data()
-        close = current_data['close']
+        close = current_data["close"]
         observation = [close - current_data[col] for col in self.column_names]
         return np.array(observation, dtype=np.float32)
-    
-    def get_start_padding(self) -> int:
-        return 31 # Monthly start padding
 
+    def get_start_padding(self) -> int:
+        return 31  # Monthly start padding

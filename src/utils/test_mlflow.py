@@ -83,7 +83,7 @@ def test_multiple_episodes(mock_mlflow, callback):
 
 @patch("src.utils.mlflow.mlflow")
 def test_check_freq_behavior(mock_mlflow, callback):
-    callback.check_freq = 3 # episode_cumulative_reward and mean_final_equity should be called every 3 step
+    callback.check_freq = 3  # episode_cumulative_reward and mean_final_equity should be called every 3 step
     callback.all_episode_equities = [1000.0, 1100.0, 1200.0]
     callback.num_timesteps = 100
     callback.n_calls = 0  # Initialize n_calls

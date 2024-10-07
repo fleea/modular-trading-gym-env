@@ -5,6 +5,7 @@ from typing import List
 from gymnasium import spaces
 import numpy as np
 
+
 class TrendObservationPercentage(TrendObservation):
     def get_space(self) -> spaces.Space:
         # Adjust the space to accommodate percentage changes
@@ -21,7 +22,9 @@ class TrendObservationPercentage(TrendObservation):
             if env.current_index - offset >= env.start_index:
                 previous_time_index = env.current_index - offset
                 previous_data = env.data.loc[previous_time_index]
-                past_price = previous_data.bid_price # If OrderAction.CLOSE right now, what is the price we get?
+                past_price = (
+                    previous_data.bid_price
+                )  # If OrderAction.CLOSE right now, what is the price we get?
                 percentage_change = ((current_price - past_price) / past_price) * 100
                 trends.append(percentage_change)
             else:

@@ -3,7 +3,7 @@ import mlflow
 from stable_baselines3.common.callbacks import BaseCallback
 
 
-LOG_DIR="./mlflow"
+LOG_DIR = "./mlflow"
 
 
 class MLflowCallback(BaseCallback):

@@ -17,10 +17,12 @@ def mock_env():
     env = Mock(spec=TrendEnvironment)
     env.current_step = 5  # the 10th step
     env.get_current_price.return_value = 0.6
-    env.data = pd.DataFrame({
-        'bid_price': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        'ask_price': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-    })
+    env.data = pd.DataFrame(
+        {
+            "bid_price": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+            "ask_price": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        }
+    )
     env.orders = []
     return env
 
@@ -69,10 +71,12 @@ def test_calculate_trend_insufficient_data(trend_observation_rms):
     mock_env = Mock(spec=TrendEnvironment)
     mock_env.current_step = 4  # Not enough data for all offsets
     mock_env.get_current_price.return_value = 1.1
-    mock_env.data = pd.DataFrame({
-        'bid_price': [0.9, 0.95, 1.0, 1.05, 1.1],
-        'ask_price': [0.91, 0.96, 1.01, 1.06, 1.11]
-    })
+    mock_env.data = pd.DataFrame(
+        {
+            "bid_price": [0.9, 0.95, 1.0, 1.05, 1.1],
+            "ask_price": [0.91, 0.96, 1.01, 1.06, 1.11],
+        }
+    )
 
     trends = trend_observation_rms._calculate_trend(mock_env)
 
@@ -100,11 +104,13 @@ def test_rms_calculation(trend_observation_rms, mock_env):
     from collections import deque
 
     # Set up a known sequence of trends
-    trend_observation_rms.trend_history = deque([
-        np.array([1.0, 2.0, 3.0]),
-        np.array([2.0, 3.0, 4.0]),
-        np.array([3.0, 4.0, 5.0])
-    ])
+    trend_observation_rms.trend_history = deque(
+        [
+            np.array([1.0, 2.0, 3.0]),
+            np.array([2.0, 3.0, 4.0]),
+            np.array([3.0, 4.0, 5.0]),
+        ]
+    )
 
     # Calculate the expected RMS
     all_values = [1.0, 2.0, 3.0, 2.0, 3.0, 4.0, 3.0, 4.0, 5.0]
@@ -122,15 +128,19 @@ def test_rms_calculation(trend_observation_rms, mock_env):
 
     # Calculate raw trends
     current_price = mock_env.data.loc[5].bid_price
-    raw_trends = np.array([
-        current_price - mock_env.data.loc[4].bid_price,
-        current_price - mock_env.data.loc[2].bid_price,
-        current_price - mock_env.data.loc[0].bid_price
-    ])
+    raw_trends = np.array(
+        [
+            current_price - mock_env.data.loc[4].bid_price,
+            current_price - mock_env.data.loc[2].bid_price,
+            current_price - mock_env.data.loc[0].bid_price,
+        ]
+    )
 
     # Apply RMS normalization
     actual_multiplier = get_multiplier(trend_observation_rms.trend_history)
-    expected_trends = raw_trends * actual_multiplier * trend_observation_rms.rms_multiplier
+    expected_trends = (
+        raw_trends * actual_multiplier * trend_observation_rms.rms_multiplier
+    )
     # print(f"trends: {trends}, expected_trends: {expected_trends}")
 
     np.testing.assert_array_almost_equal(trends, expected_trends)

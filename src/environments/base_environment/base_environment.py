@@ -39,7 +39,11 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     )  # Tick Data or trading data per minute
 
     def __init__(
-        self: Self, initial_balance: int, data: pd.DataFrame, start_index: int = 0, max_index: int = None
+        self: Self,
+        initial_balance: int,
+        data: pd.DataFrame,
+        start_index: int = 0,
+        max_index: int = None,
     ) -> None:
         self.initial_balance = initial_balance
         self.balance = [initial_balance]
@@ -90,7 +94,10 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         pass
 
     def _is_done(self: Self) -> bool:
-        return self.current_index - self.start_index >= self.max_index or self.balance[-1] <= 0
+        return (
+            self.current_index - self.start_index >= self.max_index
+            or self.balance[-1] <= 0
+        )
 
     def _is_truncated(self: Self) -> bool:
         return False  # Default implementation, can be overridden in child classes
@@ -212,7 +219,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
             return self.data.iloc[index]
         except IndexError:
             return None
-        
+
     def get_data(self) -> pd.DataFrame:
         return self.data
 

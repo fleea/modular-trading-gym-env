@@ -18,9 +18,7 @@ def NonZeroBuyRewardStock(self: BaseEnvironment):
 
     # 1 for stock
     # 1000 for forex
-    delta_bid_price = 1 * (
-        current_step_data["close"] - previous_step_data["close"]
-    )
+    delta_bid_price = 1 * (current_step_data["close"] - previous_step_data["close"])
 
     return -delta_bid_price
 

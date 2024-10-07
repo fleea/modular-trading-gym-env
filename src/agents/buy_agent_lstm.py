@@ -1,5 +1,5 @@
 # export PYTHONPATH=$PYTHONPATH:.
-# python3.12 src/agents/multiple_buy_agent_lstm.py
+# python3.12 src/agents/buy_agent_lstm.py
 # Need to run in the root dir so the mlruns directory is located in the root
 
 from sb3_contrib import RecurrentPPO
@@ -10,10 +10,13 @@ from src.callbacks.log_test_lstm_callback import LogTestLSTMCallback
 from src.agents.base_agent import BaseAgent
 import random
 
+
 def start():
     experiment_name = "Recurrent PPO - LSTM"
     train_timesteps = 4_500_000
-    data, max_profit = get_data(250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1)))
+    data, max_profit = get_data(
+        250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1))
+    )
     trend_offset = [1, 2, 3]
     std_multiplier = 1
     observation = TrendObservationRMS(trend_offset, std_multiplier)
@@ -39,19 +42,20 @@ def start():
         "sde_sample_freq": 4,
     }
     agent = BaseAgent(
-        experiment_name = experiment_name,
-        data = data,
-        model = RecurrentPPO,
-        model_kwargs = model_kwargs,
-        callback = LogTestLSTMCallback,
-        env_entry_point = "src.environments.multiple_buy.multiple_buy_environment:MultipleBuyEnvironment",
-        env_kwargs = env_kwargs,
-        train_timesteps = train_timesteps,
-        check_freq = 1000,
-        test_size = 0.1,
-        n_splits = 1,
+        experiment_name=experiment_name,
+        data=data,
+        model=RecurrentPPO,
+        model_kwargs=model_kwargs,
+        callback=LogTestLSTMCallback,
+        env_entry_point="src.environments.buy_environment.buy_environment:BuyEnvironment",
+        env_kwargs=env_kwargs,
+        train_timesteps=train_timesteps,
+        check_freq=1000,
+        test_size=0.1,
+        n_splits=1,
     )
     agent.start()
+
 
 if __name__ == "__main__":
     start()

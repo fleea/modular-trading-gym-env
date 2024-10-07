@@ -1,17 +1,18 @@
-# pytest src/environments/multiple_buy/test_multiple_buy_environment.py
+# pytest src/environments/buy_environment/test_buy_environment.py
+
 import unittest
 from unittest.mock import Mock, patch
 import numpy as np
 from gymnasium import spaces
-from src.environments.multiple_buy.multiple_buy_environment import (
-    MultipleBuyEnvironment,
+from src.environments.buy_environment.buy_environment import (
+    BuyEnvironment,
 )
 from src.interfaces.order_interface import OrderType, OrderAction, OrderObjectType
 from src.observations.base_observation import BaseObservation
 from src.utils.tick_data import simulate_prices, get_data
 
 
-class TestMultipleBuyEnvironment(unittest.TestCase):
+class TestBuyEnvironment(unittest.TestCase):
     def setUp(self):
         self.initial_balance = 10000
         down = {
@@ -36,7 +37,7 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
 
         self.reward_func = Mock(return_value=0.0)
 
-        self.env = MultipleBuyEnvironment(
+        self.env = BuyEnvironment(
             initial_balance=self.initial_balance,
             data=self.data,
             observation=self.mock_observation,
@@ -58,8 +59,8 @@ class TestMultipleBuyEnvironment(unittest.TestCase):
         self.assertIn("balance", info)
         self.assertIn("equity", info)
 
-    @patch.object(MultipleBuyEnvironment, "_open_new_orders")
-    @patch.object(MultipleBuyEnvironment, "_close_excess_orders")
+    @patch.object(BuyEnvironment, "_open_new_orders")
+    @patch.object(BuyEnvironment, "_close_excess_orders")
     def test_step(self, mock_close, mock_open):
         self.env.reset()
 

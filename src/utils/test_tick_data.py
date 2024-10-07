@@ -9,7 +9,7 @@ from src.utils.tick_data import (
     PriceData,
     calculate_max_profit,
     simulate_prices,
-    create_delta_func
+    create_delta_func,
 )
 
 
@@ -27,23 +27,21 @@ def test_price_data_namedtuple():
 
 
 def test_calculate_max_profit():
-    df = pd.DataFrame({
-        'bid_price': [1.0, 1.1, 1.2, 1.1, 1.3],
-        'ask_price': [1.1, 1.2, 1.3, 1.2, 1.4]
-    })
-    assert calculate_max_profit(df) == pytest.approx(0.2, rel=1e-6)  # Max profit should be 1.3 - 1.1 = 0.2
+    df = pd.DataFrame(
+        {"bid_price": [1.0, 1.1, 1.2, 1.1, 1.3], "ask_price": [1.1, 1.2, 1.3, 1.2, 1.4]}
+    )
+    assert calculate_max_profit(df) == pytest.approx(
+        0.2, rel=1e-6
+    )  # Max profit should be 1.3 - 1.1 = 0.2
 
     # Test with no profit scenario
-    df_no_profit = pd.DataFrame({
-        'bid_price': [1.3, 1.2, 1.1, 1.0],
-        'ask_price': [1.4, 1.3, 1.2, 1.1]
-    })
+    df_no_profit = pd.DataFrame(
+        {"bid_price": [1.3, 1.2, 1.1, 1.0], "ask_price": [1.4, 1.3, 1.2, 1.1]}
+    )
     assert calculate_max_profit(df_no_profit) == 0
 
     # Test with missing columns
-    df_missing_columns = pd.DataFrame({
-        'mid_price': [1.0, 1.1, 1.2]
-    })
+    df_missing_columns = pd.DataFrame({"mid_price": [1.0, 1.1, 1.2]})
     with pytest.raises(ValueError):
         calculate_max_profit(df_missing_columns)
 
@@ -54,22 +52,22 @@ def test_simulate_prices():
         {
             "step_amount": 3,
             "spread_func": lambda step: 0.1,
-            "delta_func": lambda step: 0.01
+            "delta_func": lambda step: 0.01,
         },
         {
             "step_amount": 2,
             "spread_func": lambda step: 0.2,
-            "delta_func": lambda step: -0.02
-        }
+            "delta_func": lambda step: -0.02,
+        },
     ]
 
     result = simulate_prices(initial_price, commands)
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 5  # Total steps: 3 + 2
-    assert 'bid_price' in result.columns
-    assert 'ask_price' in result.columns
-    assert 'timestamp' in result.columns
+    assert "bid_price" in result.columns
+    assert "ask_price" in result.columns
+    assert "timestamp" in result.columns
 
 
 def test_create_delta_func():

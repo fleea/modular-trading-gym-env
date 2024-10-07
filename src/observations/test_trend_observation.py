@@ -19,10 +19,12 @@ def mock_env():
     env = Mock(spec=TrendEnvironment)
     env.current_step = 9  # the 10th step
     env.get_current_price.return_value = 1.35
-    env.data = pd.DataFrame({
-        'bid_price': [0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35],
-        'ask_price': [0.91, 0.96, 1.01, 1.06, 1.11, 1.16, 1.21, 1.26, 1.31, 1.36]
-    })
+    env.data = pd.DataFrame(
+        {
+            "bid_price": [0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35],
+            "ask_price": [0.91, 0.96, 1.01, 1.06, 1.11, 1.16, 1.21, 1.26, 1.31, 1.36],
+        }
+    )
     env.orders = []
     return env
 
@@ -67,10 +69,12 @@ def test_calculate_trend_insufficient_data(trend_observation):
     mock_env = Mock(spec=TrendEnvironment)
     mock_env.current_step = 4  # Not enough data for all offsets
     mock_env.get_current_price.return_value = 1.1
-    mock_env.data = pd.DataFrame({
-        'bid_price': [0.9, 0.95, 1.0, 1.05, 1.1],
-        'ask_price': [0.91, 0.96, 1.01, 1.06, 1.11]
-    })
+    mock_env.data = pd.DataFrame(
+        {
+            "bid_price": [0.9, 0.95, 1.0, 1.05, 1.1],
+            "ask_price": [0.91, 0.96, 1.01, 1.06, 1.11],
+        }
+    )
 
     trends = trend_observation._calculate_trend(mock_env)
 

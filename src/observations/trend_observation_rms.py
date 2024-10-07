@@ -8,7 +8,12 @@ from itertools import chain
 
 
 class TrendObservationRMS(TrendObservation):
-    def __init__(self, trend_offsets: List[int], history_size: int = 30, rms_multiplier: float = 1.0):
+    def __init__(
+        self,
+        trend_offsets: List[int],
+        history_size: int = 30,
+        rms_multiplier: float = 1.0,
+    ):
         super().__init__(trend_offsets)
         self.history_size = history_size
         self.trend_history = deque(maxlen=history_size)
@@ -26,11 +31,20 @@ class TrendObservationRMS(TrendObservation):
         try:
             current_tick = env.data.loc[env.current_index]
             current_price = current_tick.bid_price
-            trends = np.array([
-                (current_price - env.data.loc[env.current_index - offset].bid_price)
-                if env.current_index - offset >= env.start_index else 0.0
-                for offset in self.trend_offsets
-            ], dtype=np.float32)
+            trends = np.array(
+                [
+                    (
+                        (
+                            current_price
+                            - env.data.loc[env.current_index - offset].bid_price
+                        )
+                        if env.current_index - offset >= env.start_index
+                        else 0.0
+                    )
+                    for offset in self.trend_offsets
+                ],
+                dtype=np.float32,
+            )
 
             self.trend_history.append(trends)
 
@@ -45,10 +59,11 @@ class TrendObservationRMS(TrendObservation):
             print(f"rms_multiplier: {self.rms_multiplier}")
             raise
 
+
 def get_multiplier(row: list):
     row = list(chain.from_iterable(row))
     rms_from_change = np.sqrt(np.mean(np.square(row)))
-    return 1/rms_from_change if rms_from_change != 0 else 1
+    return 1 / rms_from_change if rms_from_change != 0 else 1
 
 
 if __name__ == "__main__":

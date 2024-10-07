@@ -92,12 +92,12 @@ def simulate_prices(initial_price: float, commands: List[PriceCommand]) -> pd.Da
 
 
 def get_data(
-        size=1000, 
-        initial_price: float = 1.015055, 
-        trend_probability: float = 0.5, 
-        base_delta = 0.001,
-        base_spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001))
-        ):
+    size=1000,
+    initial_price: float = 1.015055,
+    trend_probability: float = 0.5,
+    base_delta=0.001,
+    base_spread_func=lambda step: max(0.00001, random.gauss(0.00011, 0.00001)),
+):
     total_points = size
 
     # Calculate average segment length based on total_points
@@ -115,15 +115,18 @@ def get_data(
     cumulative_change = 0
 
     while total_steps < total_points:
-        segment_length = max(1, int(random.gauss(avg_segment_length, avg_segment_length / 4)))
+        segment_length = max(
+            1, int(random.gauss(avg_segment_length, avg_segment_length / 4))
+        )
         segment_length = min(segment_length, total_points - total_steps)
         # print(f"segment_length: {segment_length}")
 
         # spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001)) # Around 0.00011
         # print(f"base_spread: {spread_func}")
 
-
-        direction = Direction.UP if random.random() < trend_probability else Direction.DOWN
+        direction = (
+            Direction.UP if random.random() < trend_probability else Direction.DOWN
+        )
 
         # print(f"direction: {direction}")
         # Generate random delta function
@@ -133,7 +136,7 @@ def get_data(
         command = PriceCommand(
             step_amount=segment_length,
             spread_func=base_spread_func,
-            delta_func=create_delta_func(direction, base_delta)
+            delta_func=create_delta_func(direction, base_delta),
         )
 
         # print (command)
@@ -146,8 +149,13 @@ def get_data(
     return simulate_prices(initial_price, commands)
 
 
-def create_delta_func(direction: Direction, base_delta=0.001, std_dev=0.0001, spike_probability=0.05,
-                      spike_multiplier=3):
+def create_delta_func(
+    direction: Direction,
+    base_delta=0.001,
+    std_dev=0.0001,
+    spike_probability=0.05,
+    spike_multiplier=3,
+):
     def delta_func(step: int) -> float:
         base = base_delta * direction.value
         delta = random.gauss(base, std_dev)
@@ -165,30 +173,33 @@ def plot_tick_data(df: pd.DataFrame):
     import matplotlib.pyplot as plt
 
     plt.figure(figsize=(12, 6))
-    plt.plot(df['timestamp'], df['bid_price'], label='Bid Price')
-    plt.plot(df['timestamp'], df['ask_price'], label='Ask Price')
-    plt.title('Generated Price Data with Downward Trend and Upside Movements')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Price')
+    plt.plot(df["timestamp"], df["bid_price"], label="Bid Price")
+    plt.plot(df["timestamp"], df["ask_price"], label="Ask Price")
+    plt.title("Generated Price Data with Downward Trend and Upside Movements")
+    plt.xlabel("Timestamp")
+    plt.ylabel("Price")
     plt.legend()
     plt.grid(True)
     plt.show()
 
 
-
 def get_real_data_per_year(file_path: str, min_year: int, max_year: int):
     df = pd.read_csv(file_path)
-    df['bid_price'] = df['close'] * (1 - 0.0005)
-    df['ask_price'] = df['close'] * (1 + 0.0005)
-    df['timestamp'] = pd.to_datetime(df['time'])
-    filtered_df = df[(df['timestamp'].dt.year >= min_year) & (df['timestamp'].dt.year <= max_year)]
+    df["bid_price"] = df["close"] * (1 - 0.0005)
+    df["ask_price"] = df["close"] * (1 + 0.0005)
+    df["timestamp"] = pd.to_datetime(df["time"])
+    filtered_df = df[
+        (df["timestamp"].dt.year >= min_year) & (df["timestamp"].dt.year <= max_year)
+    ]
     filtered_df.reset_index(drop=True, inplace=True)
     return filtered_df
 
 
 if __name__ == "__main__":
     # print(get_data())
-    df, max_profit = get_data(250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1)))
+    df, max_profit = get_data(
+        250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1))
+    )
     print(df, max_profit)
     # df.to_csv('output.csv', index=False)
     # print(df)
@@ -204,4 +215,3 @@ if __name__ == "__main__":
     # print(df['bid_price'].std())
     # print(augment_col_difference(df, ['bid_price', 'ask_price']))
     # Plotting code to visualize the data
-
