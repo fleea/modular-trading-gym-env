@@ -15,7 +15,8 @@ def trend_observation_rms():
 @pytest.fixture
 def mock_env():
     env = Mock(spec=TrendEnvironment)
-    env.current_step = 5  # the 10th step
+    env.start_index = 0
+    env.current_index = 5  # the 10th step
     env.get_current_price.return_value = 0.6
     env.data = pd.DataFrame(
         {
@@ -34,14 +35,14 @@ def test_get_space(trend_observation_rms):
     np.testing.assert_array_equal(space.high, np.array([1, 10.0, 10.0, 10.0]))
 
 
-def test_get_min_periods(trend_observation_rms):
-    assert trend_observation_rms.get_min_periods() == 5  # max offset
+def test_get_start_index(trend_observation_rms):
+    assert trend_observation_rms.get_start_index() == 5  # max offset
 
 
 def test_calculate_trend(trend_observation_rms, mock_env):
     for _ in range(3):
         trends = trend_observation_rms._calculate_trend(mock_env)
-        mock_env.current_step += 1
+        mock_env.current_index += 1
 
     assert len(trends) == 3
     # Note: The exact values might differ due to normalization
@@ -69,7 +70,8 @@ def test_get_observation_with_orders(trend_observation_rms, mock_env):
 
 def test_calculate_trend_insufficient_data(trend_observation_rms):
     mock_env = Mock(spec=TrendEnvironment)
-    mock_env.current_step = 4  # Not enough data for all offsets
+    mock_env.current_index = 4  # Not enough data for all offsets
+    mock_env.start_index = 0
     mock_env.get_current_price.return_value = 1.1
     mock_env.data = pd.DataFrame(
         {
@@ -118,7 +120,7 @@ def test_rms_calculation(trend_observation_rms, mock_env):
     expected_multiplier = 1 / expected_rms
 
     # Test the full calculation
-    mock_env.current_step = 5
+    mock_env.current_index = 5
     mock_env.data.loc[5].bid_price = 1.0
     mock_env.data.loc[4].bid_price = 0.9
     mock_env.data.loc[2].bid_price = 0.8

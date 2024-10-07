@@ -51,5 +51,5 @@ class HLCObservation(BaseObservation[HLCEnvironment]):
         observation = [close - current_data[col] for col in self.column_names]
         return np.array(observation, dtype=np.float32)
 
-    def get_start_padding(self) -> int:
-        return 31  # Monthly start padding
+    def get_start_index(self) -> int:
+        return 31  # Monthly start index

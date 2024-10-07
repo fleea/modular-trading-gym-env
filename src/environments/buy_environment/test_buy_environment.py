@@ -27,7 +27,7 @@ class TestBuyEnvironment(unittest.TestCase):
         }
         self.data, _ = simulate_prices(1.015055, [down, up, down, up])
         self.mock_observation = Mock(spec=BaseObservation)
-        self.mock_observation.get_start_padding.return_value = 1
+        self.mock_observation.get_start_index.return_value = 1
         self.mock_observation.get_space.return_value = spaces.Box(
             low=-np.inf, high=np.inf, shape=(5,)
         )

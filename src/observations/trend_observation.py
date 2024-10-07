@@ -9,6 +9,7 @@ import pandas as pd
 # Define a protocol for environments that can use TrendObservation
 class TrendEnvironment(Protocol):
     current_index: int
+    start_index: int
     data: pd.DataFrame
     orders: List[Any]
 
@@ -27,7 +28,7 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
         # Boolean for order, then the trend offset calculation
         return spaces.Box(low=low, high=high, shape=shape, dtype=np.float32)
 
-    def get_start_padding(self) -> int:
+    def get_start_index(self) -> int:
         # Trend_offset is offset, and if it's become index, it the next step (offset + 1)
         return max(self.trend_offsets)
 

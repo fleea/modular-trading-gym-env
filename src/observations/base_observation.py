@@ -22,10 +22,10 @@ class BaseObservation(ABC, Generic[EnvType]):
         """
         pass
 
-    def get_start_padding(self) -> int:
+    def get_start_index(self) -> int:
         """
-        Returns the padding required for the observation.
+        Returns the start index for the observation.
         Default is 0 if not implemented in the subclass.
-        Also means the current_step set in the initialisation of the environment state.
+        Also means the current_index set in the initialisation of the environment state.
         """
         return 0

@@ -4,17 +4,40 @@ import pandas as pd
 from src.observations.price_observation import PriceObservation, PriceEnvironment
 
 
+# This environment mocks the PriceEnvironment protocol class
+@pytest.fixture
+def mock_env():
+    env = Mock(spec=TrendEnvironment)
+    env.current_index = 9  # the 10th step
+    env.get_current_price.return_value = 1.35
+    env.start_index = 0
+    env.data = pd.DataFrame(
+        {
+            "bid_price": [0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35],
+            "ask_price": [0.91, 0.96, 1.01, 1.06, 1.11, 1.16, 1.21, 1.26, 1.31, 1.36],
+        }
+    )
+    env.orders = []
+    return env
 class MockPriceEnvironment:
     def __init__(self, current_price, historical_prices):
         self.current_price = current_price
         self.historical_prices = historical_prices
+        self.data = pd.DataFrame({"bid_price": self.historical_prices})
+        self.current_index = len(historical_prices) - 1
 
     def get_current_data(self):
         return pd.Series({"bid_price": self.current_price})
 
-    def __getitem__(self, key):
-        if key == "data":
-            return pd.DataFrame({"bid_price": self.historical_prices})
+    def get_data(self):
+        return self.data
+
+    # def __getitem__(self, key):
+    #     if key == "data":
+    #         return self.data
+
+    # def get_current_price(self) -> float:
+    #     return self.current_price
 
 
 @pytest.fixture

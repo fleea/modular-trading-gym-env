@@ -6,7 +6,12 @@ import pandas as pd
 
 
 class PriceEnvironment(Protocol):
+    current_index: int
+    
     def get_current_data(self) -> pd.Series:
+        pass
+    
+    def get_data(self) -> pd.DataFrame:
         pass
 
 

@@ -3,10 +3,9 @@ import numpy as np
 import pandas as pd
 from pytest import approx
 from unittest.mock import Mock
-from src.interfaces.order_interface import OrderAction
 from .trend_observation_percentage import (
     TrendObservationPercentage,
-)  # Replace 'your_module' with the actual module name
+)
 
 
 @pytest.fixture
@@ -17,7 +16,7 @@ def trend_observation():
 @pytest.fixture
 def mock_env():
     env = Mock()
-    env.current_step = 9  # the 10th step
+    env.current_index = 9  # the 10th step
     env.get_current_price.return_value = 1.35
     env.data = pd.DataFrame(
         {
@@ -36,8 +35,8 @@ def test_get_space(trend_observation):
     np.testing.assert_array_equal(space.high, np.array([1, 10, 10, 10]))
 
 
-def test_get_min_periods(trend_observation):
-    assert trend_observation.get_min_periods() == 9
+def test_get_start_index(trend_observation):
+    assert trend_observation.get_start_index() == 9
 
 
 def test_calculate_trend(trend_observation, mock_env):
@@ -70,7 +69,8 @@ def test_get_observation_with_orders(trend_observation, mock_env):
 
 def test_calculate_trend_insufficient_data(trend_observation):
     mock_env = Mock()
-    mock_env.current_step = 4  # Not enough data for all offsets
+    mock_env.current_index = 4  # Not enough data for all offsets
+    mock_env.start_index = 0
     mock_env.get_current_price.return_value = 1.1
     mock_env.data = pd.DataFrame(
         {
