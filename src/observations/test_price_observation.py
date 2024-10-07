@@ -2,12 +2,12 @@ import pytest
 import numpy as np
 import pandas as pd
 from src.observations.price_observation import PriceObservation, PriceEnvironment
-
+from unittest.mock import Mock
 
 # This environment mocks the PriceEnvironment protocol class
 @pytest.fixture
 def mock_env():
-    env = Mock(spec=TrendEnvironment)
+    env = Mock(spec=PriceEnvironment)
     env.current_index = 9  # the 10th step
     env.get_current_price.return_value = 1.35
     env.start_index = 0

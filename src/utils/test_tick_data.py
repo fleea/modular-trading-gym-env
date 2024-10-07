@@ -61,7 +61,7 @@ def test_simulate_prices():
         },
     ]
 
-    result = simulate_prices(initial_price, commands)
+    result, max_profit = simulate_prices(initial_price, commands)
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 5  # Total steps: 3 + 2

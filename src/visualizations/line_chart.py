@@ -34,7 +34,6 @@ def visualize_line_chart(data, columns):
 
 if __name__ == "__main__":
     df = pd.read_csv("src/data/SP_SPX_1D.csv")
-    df = df.head(100)
     df["time"] = pd.to_datetime(df["time"])
     df.set_index("time", inplace=True)
     df_augmented = augment_with_hlc(df)

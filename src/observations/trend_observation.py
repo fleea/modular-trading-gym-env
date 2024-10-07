@@ -42,7 +42,6 @@ class TrendObservation(BaseObservation[TrendEnvironment]):
         trends = [
             (
                 (current_price - env.data.loc[env.current_index - offset].bid_price)
-                * 100
                 if env.current_index - offset >= env.start_index
                 else 0.0
             )

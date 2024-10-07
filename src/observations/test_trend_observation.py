@@ -68,6 +68,7 @@ def test_get_observation_with_orders(trend_observation, mock_env):
 
 def test_calculate_trend_insufficient_data(trend_observation):
     mock_env = Mock(spec=TrendEnvironment)
+    mock_env.start_index = 0
     mock_env.current_index = 4  # Not enough data for all offsets
     mock_env.get_current_price.return_value = 1.1
     mock_env.data = pd.DataFrame(

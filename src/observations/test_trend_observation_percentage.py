@@ -6,6 +6,7 @@ from unittest.mock import Mock
 from .trend_observation_percentage import (
     TrendObservationPercentage,
 )
+from src.observations.trend_observation import TrendEnvironment
 
 
 @pytest.fixture
@@ -15,7 +16,8 @@ def trend_observation():
 
 @pytest.fixture
 def mock_env():
-    env = Mock()
+    env = Mock(spec=TrendEnvironment)
+    env.start_index = 0
     env.current_index = 9  # the 10th step
     env.get_current_price.return_value = 1.35
     env.data = pd.DataFrame(

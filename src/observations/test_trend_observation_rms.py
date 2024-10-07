@@ -44,10 +44,11 @@ def test_calculate_trend(trend_observation_rms, mock_env):
         trends = trend_observation_rms._calculate_trend(mock_env)
         mock_env.current_index += 1
 
+    print(f"trends: {trends}")
     assert len(trends) == 3
-    # Note: The exact values might differ due to normalization
-    assert all(isinstance(trend, float) for trend in trends)
-    assert all(-10.0 <= trend <= 10.0 for trend in trends)
+    trends_list = trends.tolist()
+    assert all(isinstance(trend, float) for trend in trends_list)
+    assert all(-10.0 <= trend <= 10.0 for trend in trends_list)
 
 
 def test_get_observation(trend_observation_rms, mock_env):

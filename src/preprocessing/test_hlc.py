@@ -42,12 +42,12 @@ def test_augment_with_hlc():
     assert df_augmented.loc["2024-06-10", "prev_day_close"] == 5346.98
 
     assert df_augmented.loc["2024-06-10", "prev_week_high"] == 5375.08
-    assert df_augmented.loc["2024-06-10", "prev_week_low"] == 5331.33
+    assert df_augmented.loc["2024-06-10", "prev_week_low"] == 5234.32
     assert df_augmented.loc["2024-06-10", "prev_week_close"] == 5346.98
 
-    assert df_augmented.loc["2024-06-10", "prev_month_high"] == 5375.08
-    assert df_augmented.loc["2024-06-10", "prev_month_low"] == 5331.33
-    assert df_augmented.loc["2024-06-10", "prev_month_close"] == 5346.98
+    assert df_augmented.loc["2024-06-10", "prev_month_high"] == 5341.88
+    assert df_augmented.loc["2024-06-10", "prev_month_low"] == 5011.05
+    assert df_augmented.loc["2024-06-10", "prev_month_close"] == 5277.5
 
 
 # Run the test

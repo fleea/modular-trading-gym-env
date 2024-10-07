@@ -13,11 +13,13 @@ class TrendObservationRMS(TrendObservation):
         trend_offsets: List[int],
         history_size: int = 30,
         rms_multiplier: float = 1.0,
+        main_price_column: str = "bid_price",
     ):
         super().__init__(trend_offsets)
         self.history_size = history_size
         self.trend_history = deque(maxlen=history_size)
         self.rms_multiplier = rms_multiplier
+        self.main_price_column = main_price_column
 
     def get_space(self) -> spaces.Space:
         # RMS should be between 1 and -1
@@ -30,13 +32,15 @@ class TrendObservationRMS(TrendObservation):
     def _calculate_trend(self, env: TrendEnvironment) -> List[float]:
         try:
             current_tick = env.data.loc[env.current_index]
-            current_price = current_tick.bid_price
+            current_price = current_tick[self.main_price_column]
             trends = np.array(
                 [
                     (
                         (
                             current_price
-                            - env.data.loc[env.current_index - offset].bid_price
+                            - env.data.loc[env.current_index - offset][
+                                self.main_price_column
+                            ]
                         )
                         if env.current_index - offset >= env.start_index
                         else 0.0
