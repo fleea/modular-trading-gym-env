@@ -94,9 +94,9 @@ class BaseAgent:
             test_data.iloc[-1][self.main_price_column]
             - test_data.iloc[0][self.main_price_column],
         )
-        for i, row in train_data.iterrows():
+        for i, row in train_data.itertuples():
             mlflow.log_metric("training/data", row[self.main_price_column], step=i)
-        for i, row in test_data.iterrows():
+        for i, row in test_data.itertuples():
             mlflow.log_metric("test/data", row[self.main_price_column], step=i)
 
         # SETUP ENVIRONMENTS

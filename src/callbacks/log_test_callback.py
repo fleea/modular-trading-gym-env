@@ -86,7 +86,7 @@ class LogTestCallback(BaseCallback):
                 if dones.any():
                     info = infos[0]
                     mlflow.log_metric(
-                        f"eval_test/final_equity",
+                        "eval_test/final_equity",
                         info["final_equity"],
                         step=self.num_timesteps,
                     )

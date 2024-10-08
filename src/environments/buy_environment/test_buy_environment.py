@@ -9,7 +9,7 @@ from src.environments.buy_environment.buy_environment import (
 )
 from src.interfaces.order_interface import OrderType, OrderAction, OrderObjectType
 from src.observations.base_observation import BaseObservation
-from src.utils.tick_data import simulate_prices, get_data
+from src.utils.tick_data import simulate_prices
 
 
 class TestBuyEnvironment(unittest.TestCase):
