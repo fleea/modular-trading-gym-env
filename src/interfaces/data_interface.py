@@ -8,4 +8,14 @@ class TickData:
     timestamp: str
 
 
-__all__ = ["TickData"]
+@dataclass
+class StockData:
+    high: float
+    low: float
+    open: float
+    close: float
+    volume: float
+    timestamp: str
+
+
+__all__ = ["TickData", "StockData"]

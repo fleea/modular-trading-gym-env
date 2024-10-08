@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Callable, TypedDict, NamedTuple
 import pandas as pd
+import random
 
 
 class Direction(Enum):
@@ -73,45 +74,144 @@ def simulate_prices(initial_price: float, commands: List[PriceCommand]) -> pd.Da
             )
             data.append(price_data)
             segment_data.append(price_data)
+            # print(f"Step {total_steps + step}: {price_data}")
 
             delta = delta_func(total_steps + step)
             current_mid_price += delta
 
         segment_profit = calculate_max_profit(pd.DataFrame(segment_data))
         segment_profits.append(segment_profit)
-        print(f"Max profit for segment {len(segment_profits)}: {segment_profit}")
+        # print(f"Max profit for segment {len(segment_profits)}: {segment_profit}")
 
         total_steps += step_amount
 
     total_max_profit = sum(segment_profits)
-    print(f"Total max profit: {total_max_profit}")
+    # print(f"Total max profit: {total_max_profit}")
 
-    return pd.DataFrame(data)
+    return pd.DataFrame(data), total_max_profit
 
 
-def get_data():
-    # WRAPPER FOR COMMANDS FUNCTION
-    # Feel free to change or copy and paste to agent
+def get_data(
+    size=1000,
+    initial_price: float = 1.015055,
+    trend_probability: float = 0.5,
+    base_delta=0.001,
+    base_spread_func=lambda step: max(0.00001, random.gauss(0.00011, 0.00001)),
+):
+    total_points = size
 
-    # replacing
-    # up = get_directional_price_dataframe(Direction.UP, step=15, spread=11, points=100)
-    # down = get_directional_price_dataframe(Direction.DOWN, step=15, spread=11, points=100, start_price=1.0150)
-    # tick_data = merge_price_dataframes(down, up, down, up)
+    # Calculate average segment length based on total_points
+    if total_points <= 100:
+        avg_segment_length = 5
+    elif total_points <= 500:
+        avg_segment_length = 8
+    elif total_points <= 1000:
+        avg_segment_length = 12
+    else:
+        avg_segment_length = 15
 
-    initial_price: float = 1.015055
-    down = {
-        "step_amount": 15,
-        "spread_func": lambda step: 0.00011,  # Increasing spread
-        "delta_func": lambda step: -0.001,  # Constant downward trend
-    }
-    up = {
-        "step_amount": 15,
-        "spread_func": lambda step: 0.00011,  # Increasing spread
-        "delta_func": lambda step: 0.001,  # Constant downward trend
-    }
-    commands: List[PriceCommand] = [down, up, down, up]
+    commands: List[PriceCommand] = []
+    total_steps = 0
+    cumulative_change = 0
+
+    while total_steps < total_points:
+        segment_length = max(
+            1, int(random.gauss(avg_segment_length, avg_segment_length / 4))
+        )
+        segment_length = min(segment_length, total_points - total_steps)
+        # print(f"segment_length: {segment_length}")
+
+        # spread_func = lambda step: max(0.00001, random.gauss(0.00011, 0.00001)) # Around 0.00011
+        # print(f"base_spread: {spread_func}")
+
+        direction = (
+            Direction.UP if random.random() < trend_probability else Direction.DOWN
+        )
+
+        # print(f"direction: {direction}")
+        # Generate random delta function
+        # base_delta = base_delta_func * direction.value
+        # print(f"base_delta: {base_delta}")
+
+        command = PriceCommand(
+            step_amount=segment_length,
+            spread_func=base_spread_func,
+            delta_func=create_delta_func(direction, base_delta),
+        )
+
+        # print (command)
+        commands.append(command)
+        total_steps += segment_length
+
+        # Update cumulative change
+        cumulative_change += base_delta * segment_length
+
     return simulate_prices(initial_price, commands)
 
 
+def create_delta_func(
+    direction: Direction,
+    base_delta=0.001,
+    std_dev=0.0001,
+    spike_probability=0.05,
+    spike_multiplier=3,
+):
+    def delta_func(step: int) -> float:
+        base = base_delta * direction.value
+        delta = random.gauss(base, std_dev)
+
+        # Occasional spikes
+        # if random.random() < spike_probability:
+        #     delta *= random.uniform(1, spike_multiplier) * (1 if random.random() < 0.5 else -1)
+
+        return delta
+
+    return delta_func
+
+
+def plot_tick_data(df: pd.DataFrame):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(df["timestamp"], df["bid_price"], label="Bid Price")
+    plt.plot(df["timestamp"], df["ask_price"], label="Ask Price")
+    plt.title("Generated Price Data with Downward Trend and Upside Movements")
+    plt.xlabel("Timestamp")
+    plt.ylabel("Price")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def get_real_data_per_year(file_path: str, min_year: int, max_year: int):
+    df = pd.read_csv(file_path)
+    df["bid_price"] = df["close"] * (1 - 0.0005)
+    df["ask_price"] = df["close"] * (1 + 0.0005)
+    df["timestamp"] = pd.to_datetime(df["time"])
+    filtered_df = df[
+        (df["timestamp"].dt.year >= min_year) & (df["timestamp"].dt.year <= max_year)
+    ]
+    filtered_df.reset_index(drop=True, inplace=True)
+    return filtered_df
+
+
 if __name__ == "__main__":
-    print(get_data())
+    # print(get_data())
+    df, max_profit = get_data(
+        250, 3494, 1, 3, lambda step: max(0.00001, random.gauss(1, 0.1))
+    )
+    print(df, max_profit)
+    # df.to_csv('output.csv', index=False)
+    # print(df)
+    # print(f"Generated {len(df)} data points")
+    # print(f"Initial price: {df['bid_price'].iloc[0]:.6f}")
+    # print(f"Max profit: {max_profit:.6f}")
+    # print(f"Final price: {df['bid_price'].iloc[-1]:.6f}")
+    # print(f"Overall change: {(df['bid_price'].iloc[-1] - df['bid_price'].iloc[0]):.6f}")
+    # print(f"Average spread: {(df['ask_price'] - df['bid_price']).mean():.6f}")
+    # plot_tick_data(df)
+
+    # print(df.head())
+    # print(df['bid_price'].std())
+    # print(augment_col_difference(df, ['bid_price', 'ask_price']))
+    # Plotting code to visualize the data

@@ -1,5 +1,5 @@
+# pytest src/environments/base_environment/test_base_environment.py
 import unittest
-from decimal import Decimal
 import pandas as pd
 import numpy as np
 from gymnasium import spaces
@@ -8,8 +8,8 @@ from src.environments.base_environment.base_environment import BaseEnvironment
 
 
 class TestEnvironment(BaseEnvironment):
-    def __init__(self, initial_balance: int, data: pd.DataFrame, max_step: int):
-        super().__init__(initial_balance, data, max_step)
+    def __init__(self, initial_balance: int, data: pd.DataFrame):
+        super().__init__(initial_balance, data)
         self.observation_space = spaces.Box(
             low=0, high=np.inf, shape=(1,), dtype=np.float32
         )
@@ -17,11 +17,11 @@ class TestEnvironment(BaseEnvironment):
 
     def step(self, action):
         # Implement a simple step function for testing
-        self.current_step += 1
+        self.current_index += 1
         return self._get_observation(), 0, self._is_done(), False, self._get_info()
 
     def _get_observation(self):
-        return np.array([self.current_step], dtype=np.float32)
+        return np.array([self.current_index], dtype=np.float32)
 
     def get_current_price(
         self, order_action: OrderAction, order_type: OrderType = None
@@ -35,17 +35,17 @@ class TestBaseEnvironment(unittest.TestCase):
     def setUp(self):
         data = pd.DataFrame(
             {
-                "timestamp": pd.date_range(start="2023-01-01", periods=100, freq="H"),
+                "timestamp": pd.date_range(start="2023-01-01", periods=100, freq="h"),
                 "price": np.random.uniform(90, 110, 100),
             }
         )
-        self.env = TestEnvironment(initial_balance=10000, data=data, max_step=100)
+        self.env = TestEnvironment(initial_balance=10000, data=data)
 
     def test_initial_state(self):
         self.assertEqual(self.env.initial_balance, 10000)
         self.assertEqual(self.env.balance, [10000])
         self.assertEqual(self.env.equity, [10000])
-        self.assertEqual(self.env.current_step, 0)
+        self.assertEqual(self.env.current_index, 0)
 
     def test_open_order(self):
         self.env._open_order(
@@ -145,9 +145,9 @@ class TestBaseEnvironment(unittest.TestCase):
 
     def test_is_done(self):
         self.assertFalse(self.env._is_done())
-        self.env.current_step = 100
+        self.env.current_index = 100
         self.assertTrue(self.env._is_done())
-        self.env.current_step = 0
+        self.env.current_index = 0
         self.env.balance = [0]
         self.assertTrue(self.env._is_done())
 

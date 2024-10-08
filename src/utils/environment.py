@@ -21,6 +21,7 @@ def get_env(
         gym.Env: An instance of the requested environment.
     """
     try:
+        print(env_id)
         # Try to create the environment
         env = gym.make(env_id, **kwargs)
     except NameNotFound:
