@@ -1,22 +1,16 @@
-# Modular Trading Gym Environment
+# Flexible Reinforcement Learning Environment for Financial Trading Simulations
 
-This project implements a flexible reinforcement learning environment for simulating financial trading scenarios. It's based on the OpenAI Gymnasium framework and designed to be modular and extensible.
+This repository implements a flexible reinforcement learning (RL) environment for simulating financial trading scenarios. It is designed to facilitate experimentation with various observation and reward strategies, enabling researchers and practitioners to refine RL models for trading applications rapidly
+
+The environment is built upon the OpenAI Gymnasium framework and leverages Stable Baselines3 for implementing RL algorithms. By modularizing key components, the repository allows for the seamless interchange of modules across different experiments, promoting reuse and scalability.
 
 ## Features
 
-- Multiple environment types that can be extended and customized
-- Customizable observations and reward functions
-- Integration with Stable Baselines3 for easy agent implementation
-- MLflow integration for experiment tracking
-- Mock tick data generation utilities for testing different market conditions
-- Example of agent implementation is located in `src/agents` folder
-
-## Design Principles on Separation of Concerns
-
-- **Lean Base Environment**: A streamlined BaseEnvironment class provides core functionality for trading simulations, handling essential operations like order management and account state updates.
-- **Pluggable Reward Functions**: Reward functions are easily interchangeable, allowing rapid experimentation with different reward strategies without modifying the environment code.
-- **Extensible Observation Space**: Observation types are defined through a separate BaseObservation class, enabling easy creation and swapping of different state representations.
-- **Action Space** is tied into the environment (step function), changing action space requires changing step function. Different action space requires different environment implementation.
+- **Modular Architecture**: The repository decomposes the RL framework into interchangeable modules, allowing for easy customization and transferability across experiments.
+- **Flexible Observations and Rewards**: Experiment with multiple observation spaces and reward strategies without altering the core environment.
+- **Separation of Concerns**: Clear division of functionality into distinct modules enhances code readability and maintainability.
+- **Compatibility**: Built on top of OpenAI Gymnasium and Stable Baselines3 for robust RL algorithm support.
+- **Logging with MLflow**: Integrated logging and model saving using MLflow for experiment tracking and reproducibility.
 
 ## Installation
 
@@ -37,23 +31,11 @@ This project implements a flexible reinforcement learning environment for simula
 3. Install the required packages:
    ```
    pip install -r requirements.txt
-   pip install mlflow
    ```
-
-## Project Structure
-
-- `src/`: Main source code directory
-  - `agents/`: RL agent implementations
-  - `environments/`: Trading environment implementations
-  - `observations/`: Observation space definitions
-  - `rewards/`: Reward function implementations
-  - `utils/`: Utility functions and helpers
-  - `enums/`: Enumeration classes
-  - `interfaces/`: Interface definitions
 
 ## Example Usage
 
-To run a training session with the PPO agent on the MultipleBuyGear environment:
+To run an experiment, run a file in `src/agents/`, for example:
 
 ```sh
 export PYTHONPATH=$PYTHONPATH:. # Make sure to set the PYTHONPATH on root
@@ -62,9 +44,94 @@ python3 src/agents/single_buy_agent.py
 python3 src/agents/multiple_buy_agent_expanding_window.py
 ```
 
-Tick data is still mock, feel free to load your own
+## Module structure
+
+The repository is organized into modular components, each responsible for a specific aspect of the RL environment. This design follows the principles of separation of concerns and uses Python Protocols for defining minimal structure requirements per component.
+
+### Folder Structure
+
+- `src/`: Main source code directory
+  - **`agents/`**: RL agent implementations
+  - `callbacks/`: Logging, testing and saving models on training
+  - `data/`: Raw data (tick, news, stocks, etc)
+  - `enums/`: Enumeration classes (will be deprecated)
+  - **`environments/`**: Trading environment implementations
+  - `interfaces/`: Interface definitions
+  - **`observations/`**: Observation space definitions
+  - `preprocessing/`: Data preprocessing pipelines
+  - **`rewards/`**: Reward function implementations
+  - `utils/`: Utility functions and helpers
+  - `visualization/`: Utilities to display raw or processed data before training
+
+### Agents (`src/agents/`)
+
+The entry point for running experiments. It defines configurations for the agent, including:
+
+- Which RL algorithm to use,
+- Hyperparameters,
+- Which environment to use,
+- Which reward function to use,
+- Which observation to use,
+- How many splits to use for testing,
+- How many timesteps to train for.
+
+### Observations (`src/observations/`)
+
+Define how the environment's state is represented to the agent. **Feature engineering** is performed here. BaseObservation is a Protocol class that defines the minimal interface for an observation. It requires two methods to be implemented: `get_space()` and `get_observation()`. The third method, `get_start_index()`, has a default implementation that returns 0.
+
+### Rewards (`src/rewards/`)
+
+Calculate the reward strategies for the agent. Should contains a function that accept the environment as an argument and return a single float.
+
+Some default reward functions:
+
+- `simple_reward.py`: Simple reward based on the equity value
+- `non_zero_buy_reward.py`
+- `non_zero_buy_reward_stock.py`
+
+### Environments (`src/environments/`)
+
+Provides core functionality for trading simulations, including:
+
+- Order management
+- Account state updates (balance, holdings)
+- Market simulation logic
+
+BaseEnvironment is a Protocol class that defines the minimal interface for an environment. It requires several methods to be implemented:
+
+- `step()`: Take a step in the environment
+- `get_observation()`: Get the observation
+- `get_current_price()`: Get the current price of the asset
+
+Some optional methods that has default implementation:
+
+- `reset()` (optional, has default implementation): Reset the environment to the initial state
+- `_get_info()`
 
 ## Customization
+
+### Creating a New Agent
+
+1. Create a new file in `src/agents/`
+2. Implement a new class that inherits from `BaseAgent`, pick reward, observation and environment for the agent by setting the corresponding parameters
+
+   ```
+   agent = BaseAgent(
+      experiment_name=experiment_name,
+      data=data, # data from data/, can be preprocessed in preprocessing/ or raw
+      model=RecurrentPPO, # model from stable_baselines3 (or any other sb3 compatible model)
+      model_kwargs=model_kwargs, # model specific parameters
+      callback=LogTestLSTMCallback, # callback from callbacks/
+      env_entry_point="src.environments.buy_environment.buy_environment:BuyEnvironment", # environment from environments/
+      env_kwargs=env_kwargs, # environment specific parameters
+      train_timesteps=train_timesteps, # number of training timesteps
+      check_freq=1000, # number of timesteps between testing
+      test_size=0.1, # size of the test set
+      n_splits=1, # number of splits for testing
+   )
+   ```
+
+3. Run the experiment with `agent.start()`
 
 ### Creating a New Environment
 
@@ -104,12 +171,12 @@ pipreqs --savepath=requirements.in && pip-compile
 
 This project uses MLflow for experiment tracking. To view the MLflow UI:
 
-1. Run an experiment
+1. Run an experiment in `src/agents/`
 2. Start the MLflow UI:
    ```
    mlflow ui
    ```
-3. Open a web browser and go to `http://localhost:5000`
+3. Open a web browser and go to `http://127.0.0.1:5000/`
 
 ## Contributing
 
