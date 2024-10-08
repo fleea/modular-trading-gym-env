@@ -1,5 +1,5 @@
 # export PYTHONPATH=$PYTHONPATH:.
-# python3.12 src/agents/buy_agent_augment_hlc.py
+# 
 # Need to run in the root dir so the mlruns directory is located in the root
 
 # For this experiment, we are using the same data as buy_agent_mlp_stock.py but augmenting the data with HLC

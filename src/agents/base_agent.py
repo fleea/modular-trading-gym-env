@@ -11,12 +11,12 @@ class BaseAgent:
     def __init__(
         self,
         experiment_name: str = "Base Agent",
-        data: pd.DataFrame = [],
+        data: pd.DataFrame = None,
         model=None,
-        model_kwargs: dict = {},
+        model_kwargs: dict = None,
         callback: callable = LogTestCallback,
         env_entry_point: str = "src.environments.buy_environment.buy_environment:BuyEnvironment",
-        env_kwargs: dict = {},
+        env_kwargs: dict = None,
         train_timesteps: int = 4_500_000,
         check_freq: int = 1000,
         test_size: float = 0.1,
@@ -25,12 +25,12 @@ class BaseAgent:
         main_price_column: str = "bid_price",
     ):
         self.experiment_name = experiment_name
-        self.data = data
+        self.data = data if data is not None else pd.DataFrame()
         self.model = model
-        self.model_kwargs = model_kwargs
+        self.model_kwargs = model_kwargs if model_kwargs is not None else {}
         self.callback = callback
         self.env_entry_point = env_entry_point
-        self.env_kwargs = env_kwargs
+        self.env_kwargs = env_kwargs if env_kwargs is not None else {}
         self.train_timesteps = train_timesteps
         self.check_freq = check_freq
         self.test_size = test_size
@@ -41,13 +41,13 @@ class BaseAgent:
     def start(self):
         if self.model is None:
             raise ValueError("Model is required")
-        if self.env_kwargs["observation"] is None:
+        if self.env_kwargs.get("observation") is None:
             raise ValueError("Observation is required in env_kwargs")
-        if self.env_kwargs["reward_func"] is None:  # Rename into reward in environment
+        if self.env_kwargs.get("reward_func") is None:  # Rename into reward in environment
             raise ValueError("Reward function is required in env_kwargs")
 
         self.setup_experiment()
-
+        model = self.model
         if mlflow.active_run() is not None:
             mlflow.end_run()
 
@@ -59,14 +59,14 @@ class BaseAgent:
                     with mlflow.start_run(nested=True, run_name=f"Fold {fold}"):
                         train_data = self.data.iloc[train_index]
                         test_data = self.data.iloc[test_index]
-                        self.log_data(train_data, test_data)
+                        model = self.log_data(train_data, test_data)
             else:
                 train_data, test_data = train_test_split(
                     self.data, test_size=self.test_size, shuffle=False
                 )
-                self.log_data(train_data, test_data)
+                model = self.log_data(train_data, test_data)
 
-        return self.model
+        return model
 
     def setup_experiment(self):
         mlflow.set_experiment(self.experiment_name)
@@ -94,18 +94,18 @@ class BaseAgent:
             test_data.iloc[-1][self.main_price_column]
             - test_data.iloc[0][self.main_price_column],
         )
-        for i, row in train_data.itertuples():
-            mlflow.log_metric("training/data", row[self.main_price_column], step=i)
-        for i, row in test_data.itertuples():
-            mlflow.log_metric("test/data", row[self.main_price_column], step=i)
+        for row in train_data.itertuples():
+            mlflow.log_metric("training/data", getattr(row, self.main_price_column), step=row.Index)
+        for row in test_data.itertuples():
+            mlflow.log_metric("test/data", getattr(row, self.main_price_column), step=row.Index)
 
         # SETUP ENVIRONMENTS
         environment_name = get_environment_name(self.env_entry_point)
         base_env_kwargs = self.env_kwargs.copy()
         base_env_kwargs["start_index"] = train_data.index[0]
         base_env_kwargs["data"] = train_data
-        print(f"Environment name: {environment_name}")
-        print(f"Env entry point: {self.env_entry_point}")
+        mlflow.log_param("environment_name", environment_name)
+        mlflow.log_param("env_entry_point", self.env_entry_point)
         env = DummyVecEnv(
             [
                 lambda: get_env(
@@ -145,7 +145,8 @@ class BaseAgent:
 
         # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
         model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
-        mlflow.pytorch.log_model(model, "model")
+        # mlflow.pytorch.log_model(model, "model")
+        return model
 
 
 def get_environment_name(env_path: str) -> str:
