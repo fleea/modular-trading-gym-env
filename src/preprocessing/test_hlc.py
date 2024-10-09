@@ -1,13 +1,25 @@
+#pytest -v src/preprocessing/test_hlc.py
+
 import pandas as pd
 import pytest
 from hlc import augment_with_hlc
-import matplotlib.pyplot as plt
-from src.visualizations.line_chart import visualize_line_chart
+from datetime import datetime, timedelta
 
-df = pd.read_csv("src/data/SP_SPX_1D.csv")
-df["time"] = pd.to_datetime(df["time"])
+today = datetime(2024, 10, 9)
+yesterday = today - timedelta(days=1)
+last_week = today - timedelta(weeks=1)
+last_month = today - timedelta(days=30)
+
+
+data = {
+    'time': [last_month, last_week, yesterday, today],  # Times for the four rows
+    'open': [120, 130, 140, 150],
+    'high': [125, 135, 145, 155],
+    'low': [115, 125, 135, 145],
+    'close': [122, 132, 142, 152]
+}
+df = pd.DataFrame(data)
 df.set_index("time", inplace=True)
-print(df.tail())
 
 
 def test_augment_with_hlc():
@@ -37,17 +49,30 @@ def test_augment_with_hlc():
     ), "Not all expected columns are present in the augmented DataFrame"
 
     # Check if the values in the augmented DataFrame are as expected
-    assert df_augmented.loc["2024-06-10", "prev_day_high"] == 5375.08
-    assert df_augmented.loc["2024-06-10", "prev_day_low"] == 5331.33
-    assert df_augmented.loc["2024-06-10", "prev_day_close"] == 5346.98
+    assert df_augmented.loc["2024-10-09", "prev_day_high"] == 145
+    assert df_augmented.loc["2024-10-09", "prev_day_low"] == 135
+    assert df_augmented.loc["2024-10-09", "prev_day_close"] == 142
 
-    assert df_augmented.loc["2024-06-10", "prev_week_high"] == 5375.08
-    assert df_augmented.loc["2024-06-10", "prev_week_low"] == 5234.32
-    assert df_augmented.loc["2024-06-10", "prev_week_close"] == 5346.98
+    assert df_augmented.loc["2024-10-09", "prev_week_high"] == 135
+    assert df_augmented.loc["2024-10-09", "prev_week_low"] == 125
+    assert df_augmented.loc["2024-10-09", "prev_week_close"] == 132
 
-    assert df_augmented.loc["2024-06-10", "prev_month_high"] == 5341.88
-    assert df_augmented.loc["2024-06-10", "prev_month_low"] == 5011.05
-    assert df_augmented.loc["2024-06-10", "prev_month_close"] == 5277.5
+    assert df_augmented.loc["2024-10-09", "prev_month_high"] == 125
+    assert df_augmented.loc["2024-10-09", "prev_month_low"] == 115
+    assert df_augmented.loc["2024-10-09", "prev_month_close"] == 122
+
+
+    assert df_augmented.loc["2024-10-09", "change_prev_day_high"] == 10 / 145
+    assert df_augmented.loc["2024-10-09", "change_prev_day_low"] == 10 / 135
+    assert df_augmented.loc["2024-10-09", "change_prev_day_close"] == 10 / 142
+
+    assert df_augmented.loc["2024-10-09", "change_prev_week_high"] == 20 / 135
+    assert df_augmented.loc["2024-10-09", "change_prev_week_low"] == 20 / 125
+    assert df_augmented.loc["2024-10-09", "change_prev_week_close"] == 20 / 132
+
+    assert df_augmented.loc["2024-10-09", "change_prev_month_high"] == 30 / 125
+    assert df_augmented.loc["2024-10-09", "change_prev_month_low"] == 30 / 115
+    assert df_augmented.loc["2024-10-09", "change_prev_month_close"] == 30 / 122
 
 
 # Run the test

@@ -1,6 +1,9 @@
 import pandas as pd
+import numpy as np
+from src.utils.fraction import calculate_fraction
 
 # Add columns in data pre-processing
+change = "change_"
 d_high = "prev_day_high"
 d_low = "prev_day_low"
 d_close = "prev_day_close"
@@ -59,5 +62,25 @@ def augment_with_hlc(df: pd.DataFrame) -> pd.DataFrame:
 
     # Concatenate the original dataframe with the augmented data
     df_augmented = pd.concat([df, daily_filled, weekly_filled, monthly_filled], axis=1)
+
+
+    # Create a vectorized version of calculate_fraction
+    vectorized_calculate_fraction = np.vectorize(calculate_fraction)
+
+    # Calculate changes for previous day values
+    df_augmented[f'{change}{d_high}'] = vectorized_calculate_fraction(df_augmented['high'], df_augmented[d_high])
+    df_augmented[f'{change}{d_low}'] = vectorized_calculate_fraction(df_augmented['low'], df_augmented[d_low])
+    df_augmented[f'{change}{d_close}'] = vectorized_calculate_fraction(df_augmented['close'], df_augmented[d_close])
+
+    # Calculate changes for previous week values
+    df_augmented[f'{change}{w_high}'] = vectorized_calculate_fraction(df_augmented['high'], df_augmented[w_high])
+    df_augmented[f'{change}{w_low}'] = vectorized_calculate_fraction(df_augmented['low'], df_augmented[w_low])
+    df_augmented[f'{change}{w_close}'] = vectorized_calculate_fraction(df_augmented['close'], df_augmented[w_close])
+
+    # Calculate changes for previous month values
+    df_augmented[f'{change}{m_high}'] = vectorized_calculate_fraction(df_augmented['high'], df_augmented[m_high])
+    df_augmented[f'{change}{m_low}'] = vectorized_calculate_fraction(df_augmented['low'], df_augmented[m_low])
+    df_augmented[f'{change}{m_close}'] = vectorized_calculate_fraction(df_augmented['close'], df_augmented[m_close])
+
 
     return df_augmented
