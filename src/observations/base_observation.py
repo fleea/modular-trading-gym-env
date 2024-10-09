@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from gymnasium import spaces
 import numpy as np
 from typing import TypeVar, Generic
-
+import pandas as pd
 
 EnvType = TypeVar("EnvType")
 
@@ -22,7 +22,7 @@ class BaseObservation(ABC, Generic[EnvType]):
         """
         pass
 
-    def get_start_index(self) -> int:
+    def get_start_index(self, data: pd.DataFrame) -> int:
         """
         Returns the start index for the observation.
         Default is 0 if not implemented in the subclass.

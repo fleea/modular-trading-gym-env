@@ -45,7 +45,7 @@ class BuyEnvironment(BaseEnvironment):
             max_orders (int): Maximum number of concurrent orders allowed.
             closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
         """
-        start_padding = observation.get_start_index()
+        start_padding = observation.get_start_index(data)  # First data that has non 0 observation
         if len(data) <= start_padding:
             raise ValueError(
                 f"Not enough data. Need at least {start_padding} periods, but got {len(data)}"

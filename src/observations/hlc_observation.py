@@ -51,5 +51,11 @@ class HLCObservation(BaseObservation[HLCEnvironment]):
         observation = [close - current_data[col] for col in self.column_names]
         return np.array(observation, dtype=np.float32)
 
-    def get_start_index(self) -> int:
-        return 31  # Monthly start index
+    def get_start_index(self, data: pd.DataFrame) -> int:
+        if len(data) == 0:
+            return 0
+        # Find the first index where m_high is not NaN
+        first_valid_index = data[m_high].first_valid_index()
+        if first_valid_index is None:
+            return 0
+        return data.index.get_loc(first_valid_index)

@@ -136,7 +136,7 @@ class BaseAgent:
         # SETUP MODEL
         start_index = self.env_kwargs[
             "observation"
-        ].get_start_index()  # should be renamed into get_start_index
+        ].get_start_index(train_data)  # should be renamed into get_start_index
         batch_size = len(train_data) - start_index
         self.model_kwargs["batch_size"] = batch_size
         self.model_kwargs["n_steps"] = batch_size * 2

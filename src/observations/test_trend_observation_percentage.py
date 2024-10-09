@@ -37,8 +37,8 @@ def test_get_space(trend_observation):
     np.testing.assert_array_equal(space.high, np.array([1, 10, 10, 10]))
 
 
-def test_get_start_index(trend_observation):
-    assert trend_observation.get_start_index() == 9
+def test_get_start_index(trend_observation, mock_env):
+    assert trend_observation.get_start_index(mock_env.data) == 9
 
 
 def test_calculate_trend(trend_observation, mock_env):
