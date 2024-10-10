@@ -16,7 +16,7 @@ from src.utils.tick_data import get_real_data_per_year
 
 def start():
     experiment_name = "PPO - Stock - Augment HLC"
-    train_timesteps = 1_000_000
+    train_timesteps = 4_000_000
 
     df = get_real_data_per_year("src/data/SP_SPX_1D.csv", 2013, 2023)
     # df = filter_noise(df, 1, 'close')
@@ -60,6 +60,7 @@ def start():
         env_kwargs=env_kwargs,
         train_timesteps=train_timesteps,
         check_freq=1000,
+        save_freq=500_000,
         test_size=0.1,
         n_splits=1,
         num_cores=1,

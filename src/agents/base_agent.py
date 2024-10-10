@@ -5,7 +5,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from src.utils.environment import get_env
 from src.callbacks.log_test_callback import LogTestCallback, LOG_DIR
 from sklearn.model_selection import TimeSeriesSplit
-
+import os
+import re
 
 class BaseAgent:
     def __init__(
@@ -19,6 +20,7 @@ class BaseAgent:
         env_kwargs: dict = None,
         train_timesteps: int = 4_500_000,
         check_freq: int = 1000,
+        save_freq: int = 50_000,
         test_size: float = 0.1,
         n_splits: int = 1,
         num_cores: int = 1,
@@ -33,6 +35,7 @@ class BaseAgent:
         self.env_kwargs = env_kwargs if env_kwargs is not None else {}
         self.train_timesteps = train_timesteps
         self.check_freq = check_freq
+        self.save_freq = save_freq
         self.test_size = test_size
         self.n_splits = n_splits
         self.num_cores = num_cores
@@ -59,12 +62,12 @@ class BaseAgent:
                     with mlflow.start_run(nested=True, run_name=f"Fold {fold}"):
                         train_data = self.data.iloc[train_index]
                         test_data = self.data.iloc[test_index]
-                        model = self.log_data(train_data, test_data)
+                        model = self.log_and_train_model(train_data, test_data)
             else:
                 train_data, test_data = train_test_split(
                     self.data, test_size=self.test_size, shuffle=False
                 )
-                model = self.log_data(train_data, test_data)
+                model = self.log_and_train_model(train_data, test_data)
 
         return model
 
@@ -81,7 +84,7 @@ class BaseAgent:
         for key, value in self.model_kwargs.items():
             mlflow.log_param(f"model_kwargs/{key}", value)
 
-    def log_data(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
+    def log_and_train_model(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
         mlflow.log_param("train_data_shape", train_data.shape)
         mlflow.log_param(
             "train_data_buy_and_hold_diff",
@@ -143,10 +146,28 @@ class BaseAgent:
         self.model_kwargs["env"] = env
         model = self.model(**self.model_kwargs)
 
-        # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
-        model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
-        # mlflow.pytorch.log_model(model, "model")
+        # TRAIN AND SAVE MODEL PERIODICALLY
+        model_name = get_model_name(self.experiment_name)
+        current_run = mlflow.active_run()
+        run_name = current_run.info.run_name
+
+        for step in range(0, self.train_timesteps, self.save_freq):
+            # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
+            model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
+            save_model(model, model_name, run_name, str(self.train_timesteps))
+
+        save_model(model, model_name, run_name, "final")
+        mlflow.end_run()
         return model
+
+
+def save_model(model: str, model_name: str, run_name: str, step: str):
+    model_dir = "mlruns/models/"+ model_name + "/" + run_name
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(model_dir, model_name)
+    model.save(model_path)
+    artifact_path = run_name + "_" + step
+    mlflow.log_artifacts(model_dir, artifact_path=artifact_path)
 
 
 def get_environment_name(env_path: str) -> str:
@@ -160,3 +181,14 @@ def get_environment_name(env_path: str) -> str:
         str: The class name of the environment.
     """
     return env_path.split(":")[-1]
+
+
+def get_model_name(s: str):
+
+    # Remove all non-word characters (everything except numbers and letters)
+    s = re.sub(r"[^\w\s]", '', s)
+
+    # Replace all runs of whitespace with a single dash
+    s = re.sub(r"\s+", '-', s)
+
+    return s

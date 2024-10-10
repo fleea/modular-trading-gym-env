@@ -164,4 +164,5 @@ codebase.md
 mlflow.monitor.csv
 src/agents/mlruns
 mlruns/
+models/
 .DS_Store
