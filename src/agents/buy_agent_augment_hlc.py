@@ -1,5 +1,5 @@
 # export PYTHONPATH=$PYTHONPATH:.
-# 
+# python3.12 src/agents/buy_agent_augment_hlc.py
 # Need to run in the root dir so the mlruns directory is located in the root
 
 # For this experiment, we are using the same data as buy_agent_mlp_stock.py but augmenting the data with HLC
@@ -10,7 +10,7 @@ from src.callbacks.log_test_callback import LogTestCallback
 from src.agents.base_agent import BaseAgent
 import pandas as pd
 from src.preprocessing.hlc import augment_with_hlc
-from src.observations.hlc_observation import HLCObservation
+from src.observations.hlc_observation_fraction_change import HLCObservationFractionChange
 from src.utils.tick_data import get_real_data_per_year
 
 
@@ -27,7 +27,7 @@ def start():
     data = augment_with_hlc(df)
 
     data.reset_index(drop=True, inplace=True)
-    observation = HLCObservation()
+    observation = HLCObservationFractionChange()
     env_kwargs = {
         "initial_balance": 10_000,
         "reward_func": NonZeroBuyRewardStock,
@@ -60,6 +60,7 @@ def start():
         env_kwargs=env_kwargs,
         train_timesteps=train_timesteps,
         check_freq=1000,
+        save_freq=500_000,
         test_size=0.1,
         n_splits=1,
         num_cores=1,

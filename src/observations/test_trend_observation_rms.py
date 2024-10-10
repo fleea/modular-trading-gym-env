@@ -34,8 +34,8 @@ def test_get_space(trend_observation_rms):
     np.testing.assert_array_equal(space.high, np.array([1, 10.0, 10.0, 10.0]))
 
 
-def test_get_start_index(trend_observation_rms):
-    assert trend_observation_rms.get_start_index() == 5  # max offset
+def test_get_start_index(trend_observation_rms, mock_env):
+    assert trend_observation_rms.get_start_index(mock_env.data) == 5  # max offset
 
 
 def test_calculate_trend(trend_observation_rms, mock_env):

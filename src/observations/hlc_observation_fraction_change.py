@@ -1,9 +1,11 @@
 from src.observations.base_observation import BaseObservation
-from typing import List, Protocol, Any
 from gymnasium import spaces
 import numpy as np
+from src.observations.hlc_observation import HLCEnvironment
 import pandas as pd
+
 from src.preprocessing.hlc import (
+    change,
     d_high,
     d_low,
     d_close,
@@ -16,27 +18,18 @@ from src.preprocessing.hlc import (
 )
 
 
-class HLCEnvironment(Protocol):
-    current_index: int
-    data: pd.DataFrame
-    orders: List[Any]
-
-    def get_current_data(self) -> pd.Series:
-        pass
-
-
-class HLCObservation(BaseObservation[HLCEnvironment]):
+class HLCObservationFractionChange(BaseObservation[HLCEnvironment]):
     def __init__(self):
         self.column_names = [
-            d_high,
-            d_low,
-            d_close,
-            w_high,
-            w_low,
-            w_close,
-            m_high,
-            m_low,
-            m_close,
+            change + d_high,
+            change + d_low,
+            change + d_close,
+            change + w_high,
+            change + w_low,
+            change + w_close,
+            change + m_high,
+            change + m_low,
+            change + m_close,
         ]
 
     def get_space(self) -> spaces.Space:
@@ -47,8 +40,7 @@ class HLCObservation(BaseObservation[HLCEnvironment]):
 
     def get_observation(self, env: HLCEnvironment) -> np.ndarray:
         current_data = env.get_current_data()
-        close = current_data["close"]
-        observation = [close - current_data[col] for col in self.column_names]
+        observation = current_data[self.column_names]
         return np.array(observation, dtype=np.float32)
 
     def get_start_index(self, data: pd.DataFrame) -> int:
