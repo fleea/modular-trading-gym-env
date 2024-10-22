@@ -44,6 +44,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         data: pd.DataFrame,
         start_index: int = 0,
         max_index: int = None,
+        colname_time: str = "time"
     ) -> None:
         self.initial_balance = initial_balance
         self.balance = [initial_balance]
@@ -55,6 +56,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
         self.start_index = start_index
         self.max_index = max_index if max_index is not None else len(data) - start_index
         self.current_index = start_index
+        self.colname_time = colname_time
 
         # Define a default observation space
         self.observation_space = spaces.Box(
@@ -223,7 +225,7 @@ class BaseEnvironment(Env[NDArray, dict[str, Any]]):
     def get_data(self) -> pd.DataFrame:
         return self.data
 
-    def get_current_data(self) -> pd.Series:
+    def get_current_data(self) -> pd.DataFrame:
         return self.data.loc[self.current_index]
 
 

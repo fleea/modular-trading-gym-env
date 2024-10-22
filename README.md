@@ -1,8 +1,6 @@
 # Flexible Reinforcement Learning Environment for Financial Trading Simulations
 
-This repository implements a flexible reinforcement learning (RL) environment for simulating financial trading scenarios. It is designed to facilitate experimentation with various observation and reward strategies, enabling researchers and practitioners to refine RL models for trading applications rapidly
-
-The environment is built upon the OpenAI Gymnasium framework and leverages Stable Baselines3 for implementing RL algorithms. By modularizing key components, the repository allows for the seamless interchange of modules across different experiments, promoting reuse and scalability.
+This repository can help you to **rapidly** try multiple variations of your trading strategy idea. You can easily create and swap your environment, observation, rewards and training parameters. It is built upon Gymnasium framework and Stable Baselines3 to benchmark different combinations easily. I also included some basic strategies to get you started.
 
 ## Table of Contents
 

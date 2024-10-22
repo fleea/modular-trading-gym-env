@@ -26,6 +26,7 @@ def get_env(
         env = gym.make(env_id, **kwargs)
     except NameNotFound:
         # If not found, register the environment
+        print(f"Registering environment with ID: {env_id} and entry_point: {entry_point}")
         register(id=env_id, entry_point=entry_point, kwargs=kwargs)
         # Now create the environment
         env = gym.make(env_id, **kwargs)

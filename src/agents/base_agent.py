@@ -85,20 +85,10 @@ class BaseAgent:
             mlflow.log_param(f"model_kwargs/{key}", value)
 
     def log_and_train_model(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
-        mlflow.log_param("train_data_shape", train_data.shape)
-        mlflow.log_param(
-            "train_data_buy_and_hold_diff",
-            train_data.iloc[-1][self.main_price_column]
-            - train_data.iloc[0][self.main_price_column],
-        )
-        mlflow.log_param("test_data_shape", test_data.shape)
-        mlflow.log_param(
-            "test_data_buy_and_hold_diff",
-            test_data.iloc[-1][self.main_price_column]
-            - test_data.iloc[0][self.main_price_column],
-        )
+        mlflow.log_param("train/data_shape", train_data.shape)
+        mlflow.log_param("test/data_shape", test_data.shape)
         for row in train_data.itertuples():
-            mlflow.log_metric("training/data", getattr(row, self.main_price_column), step=row.Index)
+            mlflow.log_metric("train/data", getattr(row, self.main_price_column), step=row.Index)
         for row in test_data.itertuples():
             mlflow.log_metric("test/data", getattr(row, self.main_price_column), step=row.Index)
 
@@ -107,6 +97,15 @@ class BaseAgent:
         base_env_kwargs = self.env_kwargs.copy()
         base_env_kwargs["start_index"] = train_data.index[0]
         base_env_kwargs["data"] = train_data
+        base_initial_balance = get_initial_balance(base_env_kwargs.get("initial_balance"), train_data)
+        base_env_kwargs["initial_balance"] = base_initial_balance
+        train_max_order_based_on_initial_balance = base_initial_balance // train_data['close'][0]
+        mlflow.log_param(
+            "train/buy_and_hold_diff",
+            (train_data.iloc[-1][self.main_price_column]
+            - train_data.iloc[0][self.main_price_column]) * train_max_order_based_on_initial_balance,
+        )
+        mlflow.log_param("train/initial_balance", base_initial_balance)
         mlflow.log_param("environment_name", environment_name)
         mlflow.log_param("env_entry_point", self.env_entry_point)
         env = DummyVecEnv(
@@ -123,6 +122,15 @@ class BaseAgent:
         test_env_kwargs = self.env_kwargs.copy()
         test_env_kwargs["start_index"] = test_data.index[0]
         test_env_kwargs["data"] = test_data
+        test_initial_balance = get_initial_balance(test_env_kwargs.get("initial_balance"), test_data)
+        test_env_kwargs["initial_balance"] = test_initial_balance
+        test_max_order_based_on_initial_balance = base_initial_balance // train_data['close'][0]
+        mlflow.log_param(
+            "test/buy_and_hold_diff",
+            (test_data.iloc[-1][self.main_price_column]
+            - test_data.iloc[0][self.main_price_column]) * test_max_order_based_on_initial_balance,
+        )
+        mlflow.log_param("test/initial_balance", test_initial_balance)
         test_env = DummyVecEnv(
             [
                 lambda: get_env(
@@ -192,3 +200,9 @@ def get_model_name(s: str):
     s = re.sub(r"\s+", '-', s)
 
     return s
+
+def get_initial_balance(initial_balance, data: pd.DataFrame):
+    if callable(initial_balance):
+        return initial_balance(data)
+    else:
+        return initial_balance

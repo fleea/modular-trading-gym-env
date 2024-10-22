@@ -7,10 +7,10 @@ def calculate_fraction(current_value, previous_value):
     :return: The calculated fraction.
     :raises ZeroDivisionError: If previous_value is zero.
     """
-    if previous_value == 0:
+    if (previous_value == 0).any():
         raise ZeroDivisionError("previous_value cannot be zero.")
-    if previous_value < 0:
+    if (previous_value < 0).any():
         raise ValueError("previous_value must be positive.")
-    if current_value < 0:
+    if (current_value < 0).any():
         raise ValueError("current_value must be positive.")
     return (current_value - previous_value) / previous_value

@@ -1,20 +1,25 @@
 import pandas as pd
-import numpy as np
 from src.utils.fraction import calculate_fraction
 from src.utils.rms import get_rms_multiplier
 
 
 # Add columns in data pre-processing
 change = "change_"
-d_high = "prev_day_high"
-d_low = "prev_day_low"
-d_close = "prev_day_close"
-w_high = "prev_week_high"
-w_low = "prev_week_low"
-w_close = "prev_week_close"
-m_high = "prev_month_high"
-m_low = "prev_month_low"
-m_close = "prev_month_close"
+high = "high"
+low = "low"
+close = "close"
+d = "prev_day"
+w = "prev_week"
+m = "prev_month"
+d_high = d + "_" + high
+d_low = d + "_" + low
+d_close = d + "_" + close
+w_high = w + "_" + high
+w_low = w + "_" + low
+w_close = w + "_" + close
+m_high = m + "_" + high
+m_low = m + "_" + low
+m_close = m + "_" + close
 
 
 def augment_with_hlc(df: pd.DataFrame) -> pd.DataFrame:
@@ -65,55 +70,20 @@ def augment_with_hlc(df: pd.DataFrame) -> pd.DataFrame:
     # Concatenate the original dataframe with the augmented data
     df_augmented = pd.concat([df, daily_filled, weekly_filled, monthly_filled], axis=1)
 
-    # Create a vectorized version of calculate_fraction
-    vectorized_calculate_fraction = np.vectorize(calculate_fraction)
+    # # Create a vectorized version of calculate_fraction
+    # vectorized_calculate_fraction = np.vectorize(calculate_fraction)
 
-    # DAY
+    # Define time periods and corresponding columns
+    time_periods = [d, w, m]
+    metrics = [high, low, close]
 
-    change_d_high = vectorized_calculate_fraction(df_augmented['high'], df_augmented[d_high])
-    rms_multiplier_d_high = get_rms_multiplier(change_d_high)
-    df_augmented[f'{change}{d_high}'] = change_d_high * rms_multiplier_d_high
-
-    change_d_low = vectorized_calculate_fraction(df_augmented['low'], df_augmented[d_low])
-    rms_multiplier_d_low = get_rms_multiplier(change_d_low)
-    print(f"rms_multiplier_d_low: {rms_multiplier_d_low}")
-    df_augmented[f'{change}{d_low}'] = change_d_low * rms_multiplier_d_low
-
-    change_d_close = vectorized_calculate_fraction(df_augmented['close'], df_augmented[d_close])
-    rms_multiplier_d_close = get_rms_multiplier(change_d_close)
-    print(f"rms_multiplier_d_close: {rms_multiplier_d_close}")
-    df_augmented[f'{change}{d_close}'] = change_d_close * rms_multiplier_d_close
-
-    # WEEK
-    change_w_high = vectorized_calculate_fraction(df_augmented['high'], df_augmented[w_high])
-    rms_multiplier_w_high = get_rms_multiplier(change_w_high)
-    print(f"rms_multiplier_w_high: {rms_multiplier_w_high}")
-    df_augmented[f'{change}{w_high}'] = change_w_high * rms_multiplier_w_high
-
-    change_w_low = vectorized_calculate_fraction(df_augmented['low'], df_augmented[w_low])
-    rms_multiplier_w_low = get_rms_multiplier(change_w_low)
-    print(f"rms_multiplier_w_low: {rms_multiplier_w_low}")
-    df_augmented[f'{change}{w_low}'] = change_w_low * rms_multiplier_w_low
-
-    change_w_close = vectorized_calculate_fraction(df_augmented['close'], df_augmented[w_close])
-    rms_multiplier_w_close = get_rms_multiplier(change_w_close)
-    print(f"rms_multiplier_w_close: {rms_multiplier_w_close}")
-    df_augmented[f'{change}{w_close}'] = change_w_close * rms_multiplier_w_close
-
-    # MONTH
-    change_m_high = vectorized_calculate_fraction(df_augmented['high'], df_augmented[m_high])
-    rms_multiplier_m_high = get_rms_multiplier(change_m_high)
-    print(f"rms_multiplier_m_high: {rms_multiplier_m_high}")
-    df_augmented[f'{change}{m_high}'] = change_m_high * rms_multiplier_m_high
-
-    change_m_low = vectorized_calculate_fraction(df_augmented['low'], df_augmented[m_low])
-    rms_multiplier_m_low = get_rms_multiplier(change_m_low)
-    print(f"rms_multiplier_m_low: {rms_multiplier_m_low}")
-    df_augmented[f'{change}{m_low}'] = change_m_low * rms_multiplier_m_low
-
-    change_m_close = vectorized_calculate_fraction(df_augmented['close'], df_augmented[m_close])    
-    rms_multiplier_m_close = get_rms_multiplier(change_m_close)
-    print(f"rms_multiplier_m_close: {rms_multiplier_m_close}")
-    df_augmented[f'{change}{m_close}'] = change_m_close * rms_multiplier_m_close
+    for period in time_periods:
+        for metric in metrics:
+            prev_metric = period + "_" + metric
+            change_fraction = calculate_fraction(df_augmented[metric], df_augmented[prev_metric])
+            rms_multiplier = get_rms_multiplier(change_fraction)
+            # print(f"rms_multiplier_{period}_{metric}: {rms_multiplier}")
+            percentage_change = change_fraction * rms_multiplier
+            df_augmented[f'{change}{prev_metric}'] = percentage_change
 
     return df_augmented

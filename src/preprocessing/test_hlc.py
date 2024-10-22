@@ -1,4 +1,5 @@
 # pytest -s src/preprocessing/test_hlc.py
+# python3.12 src/preprocessing/test_hlc.py
 
 import pandas as pd
 import pytest

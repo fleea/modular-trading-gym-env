@@ -40,11 +40,14 @@ class HLCObservationFractionChange(BaseObservation[HLCEnvironment]):
 
     def get_observation(self, env: HLCEnvironment) -> np.ndarray:
         current_data = env.get_current_data()
-        observation = current_data[self.column_names]
+        if isinstance(current_data, pd.Series):
+            current_data = current_data.to_frame().T
+        col_names = [col for col in self.column_names if col in current_data.columns]
+        observation = current_data[col_names]
         return np.array(observation, dtype=np.float32)
 
     def get_start_index(self, data: pd.DataFrame) -> int:
-        if len(data) == 0:
+        if len(data) == 0 or m_high not in data.columns:
             return 0
         # Find the first index where m_high is not NaN
         first_valid_index = data[m_high].first_valid_index()
