@@ -16,7 +16,7 @@ def NonZeroBuyRewardStock(self: BaseEnvironment):
     delta_bid_price = 100 * (current_step_data["close"] - previous_step_data["close"]) / previous_step_data["close"]
 
     if equity_change != 0:
-        return delta_bid_price
+        return 100 * equity_change / self.equity[-2]
     
     return -delta_bid_price
 

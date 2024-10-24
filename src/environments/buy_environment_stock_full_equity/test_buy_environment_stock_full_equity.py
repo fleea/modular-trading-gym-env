@@ -61,10 +61,7 @@ class TestBuyEnvironmentStockFullEquity(unittest.TestCase):
         expected_orders = 1
         self.assertEqual(final_orders, expected_orders, f"Number of orders should be {expected_orders} for action 0.2 with max_order 5.")
 
-    def test_action_point_seven_open_two_orders(self):
-        """
-        Test that 2 orders are opened when action is 0.7, current_orders is 5, and max_order is 10.
-        """
+    def test_action_point_five_open_two_orders(self):
         # Set existing orders to 5
         mock_order = OrderObjectType(
             volume=1, type=OrderType.BUY, open_price=122, timestamp="01-01-2024"
@@ -76,6 +73,19 @@ class TestBuyEnvironmentStockFullEquity(unittest.TestCase):
         final_orders = len(self.env.orders)
         expected_orders = 2
         self.assertEqual(final_orders, expected_orders, f"Number of orders should be {expected_orders} for action 0.5 with current_orders 3 and max_order 5.")
+
+    def test_action_one_open_five_orders(self):
+        # Set existing orders to 5
+        mock_order = OrderObjectType(
+            volume=1, type=OrderType.BUY, open_price=122, timestamp="01-01-2024"
+        )
+        self.env.orders = [mock_order for _ in range(3)]
+        self.env.closed_orders = []
+        action = np.array([1], dtype=np.float32)
+        self.env.step(action)
+        final_orders = len(self.env.orders)
+        expected_orders = 5
+        self.assertEqual(final_orders, expected_orders, f"Number of orders should be {expected_orders} for action 1 and max_order 5.")
 
 if __name__ == "__main__":
     unittest.main()

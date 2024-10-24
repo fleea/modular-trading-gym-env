@@ -29,7 +29,7 @@ class BuyEnvironment(BaseEnvironment):
         observation: BaseObservation["BuyEnvironment"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
-        max_orders: int = 3,
+        max_orders: int = 10,
         closing_strategy: OrderClosingStrategy = OrderClosingStrategy.LIFO,
         start_index: int = 0,
         colname_time: str = "time" 
