@@ -1,5 +1,5 @@
 # export PYTHONPATH=$PYTHONPATH:.
-# python3.12 src/agents/buy_agent_augment_hlc.py
+# python3.12 src/agents/buy_agent_augment_hlc_full_equity.py
 # Need to run in the root dir so the mlruns directory is located in the root
 
 # For this experiment, we are using the same data as buy_agent_mlp_stock.py but augmenting the data with HLC
@@ -14,26 +14,30 @@ from src.observations.hlc_observation_fraction_change import HLCObservationFract
 from src.utils.tick_data import get_real_data_per_year
 
 
+def get_initial_balance(data: pd.DataFrame) -> float:
+    return data["close"].iloc[0] * 6 - 1
+
 def start():
-    experiment_name = "PPO - Stock - Augment HLC"
+    experiment_name = "PPO - Stock - Augment HLC - Full Equity"
     train_timesteps = 4_000_000
 
     df = get_real_data_per_year("src/data/SP_SPX_1D.csv", 2013, 2023)
-    # df = filter_noise(df, 1, 'close')
-    # df = pd.read_csv('src/data/SP_SPX_1D.csv')
     df["time"] = pd.to_datetime(df["time"])
     df["timestamp"] = df["time"]
-    df.set_index("time", inplace=True)
+    df.set_index("timestamp", inplace=True)
     data = augment_with_hlc(df)
 
     data.reset_index(drop=True, inplace=True)
     observation = HLCObservationFractionChange()
+
+    # data.to_csv("src/agents/buy_agent_augment_hlc_full_equity_data.csv")
+
     env_kwargs = {
-        "initial_balance": 10_000,
+        "initial_balance": get_initial_balance,
         "reward_func": NonZeroBuyRewardStock,
         "observation": observation,
-        "spread": 0.1,
-        "max_orders": 1,
+        # "spread": 0.1,
+        # "max_orders": 1,
         "lot": 1,
     }
     model_kwargs = {
@@ -56,7 +60,7 @@ def start():
         model=PPO,
         model_kwargs=model_kwargs,
         callback=LogTestCallback,
-        env_entry_point="src.environments.buy_environment_stock.buy_environment_stock:BuyEnvironmentStock",
+        env_entry_point="src.environments.buy_environment_stock_full_equity.buy_environment_stock_full_equity:BuyEnvironmentStockFullEquity",
         env_kwargs=env_kwargs,
         train_timesteps=train_timesteps,
         check_freq=1000,
@@ -71,3 +75,6 @@ def start():
 
 if __name__ == "__main__":
     start()
+
+
+

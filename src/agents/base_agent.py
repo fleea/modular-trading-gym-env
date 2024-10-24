@@ -5,7 +5,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from src.utils.environment import get_env
 from src.callbacks.log_test_callback import LogTestCallback, LOG_DIR
 from sklearn.model_selection import TimeSeriesSplit
-
+import os
+import re
 
 class BaseAgent:
     def __init__(
@@ -19,6 +20,7 @@ class BaseAgent:
         env_kwargs: dict = None,
         train_timesteps: int = 4_500_000,
         check_freq: int = 1000,
+        save_freq: int = 50_000,
         test_size: float = 0.1,
         n_splits: int = 1,
         num_cores: int = 1,
@@ -33,6 +35,7 @@ class BaseAgent:
         self.env_kwargs = env_kwargs if env_kwargs is not None else {}
         self.train_timesteps = train_timesteps
         self.check_freq = check_freq
+        self.save_freq = save_freq
         self.test_size = test_size
         self.n_splits = n_splits
         self.num_cores = num_cores
@@ -59,12 +62,12 @@ class BaseAgent:
                     with mlflow.start_run(nested=True, run_name=f"Fold {fold}"):
                         train_data = self.data.iloc[train_index]
                         test_data = self.data.iloc[test_index]
-                        model = self.log_data(train_data, test_data)
+                        model = self.log_and_train_model(train_data, test_data)
             else:
                 train_data, test_data = train_test_split(
                     self.data, test_size=self.test_size, shuffle=False
                 )
-                model = self.log_data(train_data, test_data)
+                model = self.log_and_train_model(train_data, test_data)
 
         return model
 
@@ -81,21 +84,11 @@ class BaseAgent:
         for key, value in self.model_kwargs.items():
             mlflow.log_param(f"model_kwargs/{key}", value)
 
-    def log_data(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
-        mlflow.log_param("train_data_shape", train_data.shape)
-        mlflow.log_param(
-            "train_data_buy_and_hold_diff",
-            train_data.iloc[-1][self.main_price_column]
-            - train_data.iloc[0][self.main_price_column],
-        )
-        mlflow.log_param("test_data_shape", test_data.shape)
-        mlflow.log_param(
-            "test_data_buy_and_hold_diff",
-            test_data.iloc[-1][self.main_price_column]
-            - test_data.iloc[0][self.main_price_column],
-        )
+    def log_and_train_model(self, train_data: pd.DataFrame, test_data: pd.DataFrame):
+        mlflow.log_param("train/data_shape", train_data.shape)
+        mlflow.log_param("test/data_shape", test_data.shape)
         for row in train_data.itertuples():
-            mlflow.log_metric("training/data", getattr(row, self.main_price_column), step=row.Index)
+            mlflow.log_metric("train/data", getattr(row, self.main_price_column), step=row.Index)
         for row in test_data.itertuples():
             mlflow.log_metric("test/data", getattr(row, self.main_price_column), step=row.Index)
 
@@ -104,6 +97,14 @@ class BaseAgent:
         base_env_kwargs = self.env_kwargs.copy()
         base_env_kwargs["start_index"] = train_data.index[0]
         base_env_kwargs["data"] = train_data
+        base_initial_balance = get_initial_balance(base_env_kwargs.get("initial_balance"), train_data)
+        base_env_kwargs["initial_balance"] = base_initial_balance
+        train_max_order_based_on_initial_balance = base_initial_balance // train_data['close'][0]
+        train_buy_and_hold_diff = (train_data.iloc[-1][self.main_price_column]
+            - train_data.iloc[0][self.main_price_column]) * train_max_order_based_on_initial_balance
+        mlflow.log_param("train/buy_and_hold_diff", train_buy_and_hold_diff)
+        mlflow.log_param("train/buy_and_hold_result", base_initial_balance + train_buy_and_hold_diff)
+        mlflow.log_param("train/initial_balance", base_initial_balance)
         mlflow.log_param("environment_name", environment_name)
         mlflow.log_param("env_entry_point", self.env_entry_point)
         env = DummyVecEnv(
@@ -120,6 +121,14 @@ class BaseAgent:
         test_env_kwargs = self.env_kwargs.copy()
         test_env_kwargs["start_index"] = test_data.index[0]
         test_env_kwargs["data"] = test_data
+        test_initial_balance = get_initial_balance(test_env_kwargs.get("initial_balance"), test_data)
+        test_env_kwargs["initial_balance"] = test_initial_balance
+        test_max_order_based_on_initial_balance = test_initial_balance // train_data['close'][0]
+        test_buy_and_hold_diff = (test_data.iloc[-1][self.main_price_column]
+            - test_data.iloc[0][self.main_price_column]) * test_max_order_based_on_initial_balance
+        mlflow.log_param("test/buy_and_hold_diff", test_buy_and_hold_diff)
+        mlflow.log_param("test/buy_and_hold_result ", test_initial_balance + test_buy_and_hold_diff)
+        mlflow.log_param("test/initial_balance", test_initial_balance)
         test_env = DummyVecEnv(
             [
                 lambda: get_env(
@@ -136,17 +145,35 @@ class BaseAgent:
         # SETUP MODEL
         start_index = self.env_kwargs[
             "observation"
-        ].get_start_index()  # should be renamed into get_start_index
+        ].get_start_index(train_data)  # should be renamed into get_start_index
         batch_size = len(train_data) - start_index
         self.model_kwargs["batch_size"] = batch_size
         self.model_kwargs["n_steps"] = batch_size * 2
         self.model_kwargs["env"] = env
         model = self.model(**self.model_kwargs)
 
-        # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
-        model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
-        # mlflow.pytorch.log_model(model, "model")
+        # TRAIN AND SAVE MODEL PERIODICALLY
+        model_name = get_model_name(self.experiment_name)
+        current_run = mlflow.active_run()
+        run_name = current_run.info.run_name
+
+        for step in range(0, self.train_timesteps, self.save_freq):
+            # RUN TRAINING WITH MLFLOW CALLBACK, LOG ALL TEST IN MLFLOW CALLBACK
+            model.learn(total_timesteps=self.train_timesteps, callback=model_callback)
+            save_model(model, model_name, run_name, str(self.train_timesteps))
+
+        save_model(model, model_name, run_name, "final")
+        mlflow.end_run()
         return model
+
+
+def save_model(model: str, model_name: str, run_name: str, step: str):
+    model_dir = "mlruns/models/"+ model_name + "/" + run_name
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(model_dir, model_name)
+    model.save(model_path)
+    artifact_path = run_name + "_" + step
+    mlflow.log_artifacts(model_dir, artifact_path=artifact_path)
 
 
 def get_environment_name(env_path: str) -> str:
@@ -160,3 +187,20 @@ def get_environment_name(env_path: str) -> str:
         str: The class name of the environment.
     """
     return env_path.split(":")[-1]
+
+
+def get_model_name(s: str):
+
+    # Remove all non-word characters (everything except numbers and letters)
+    s = re.sub(r"[^\w\s]", '', s)
+
+    # Replace all runs of whitespace with a single dash
+    s = re.sub(r"\s+", '-', s)
+
+    return s
+
+def get_initial_balance(initial_balance, data: pd.DataFrame):
+    if callable(initial_balance):
+        return initial_balance(data)
+    else:
+        return initial_balance

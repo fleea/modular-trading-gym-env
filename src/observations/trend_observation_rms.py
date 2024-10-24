@@ -4,8 +4,7 @@ from typing import List
 from gymnasium import spaces
 import numpy as np
 from collections import deque
-from itertools import chain
-
+from src.utils.rms import get_multiplier
 
 class TrendObservationRMS(TrendObservation):
     def __init__(
@@ -62,12 +61,6 @@ class TrendObservationRMS(TrendObservation):
             print(f"trend_history: {list(self.trend_history)}")
             print(f"rms_multiplier: {self.rms_multiplier}")
             raise
-
-
-def get_multiplier(row: list):
-    row = list(chain.from_iterable(row))
-    rms_from_change = np.sqrt(np.mean(np.square(row)))
-    return 1 / rms_from_change if rms_from_change != 0 else 1
 
 
 if __name__ == "__main__":

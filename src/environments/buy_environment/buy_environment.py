@@ -29,9 +29,10 @@ class BuyEnvironment(BaseEnvironment):
         observation: BaseObservation["BuyEnvironment"],
         reward_func: Callable[[Self, ...], float],
         lot: float = 0.01 * 100_000,
-        max_orders: int = 3,
+        max_orders: int = 10,
         closing_strategy: OrderClosingStrategy = OrderClosingStrategy.LIFO,
         start_index: int = 0,
+        colname_time: str = "time" 
     ):
         """
         Initialize the buy trading environment.
@@ -45,7 +46,7 @@ class BuyEnvironment(BaseEnvironment):
             max_orders (int): Maximum number of concurrent orders allowed.
             closing_strategy (OrderClosingStrategy): Strategy for closing orders when reducing positions.
         """
-        start_padding = observation.get_start_index()
+        start_padding = observation.get_start_index(data)  # First data that has non 0 observation
         if len(data) <= start_padding:
             raise ValueError(
                 f"Not enough data. Need at least {start_padding} periods, but got {len(data)}"
@@ -56,6 +57,7 @@ class BuyEnvironment(BaseEnvironment):
             data=data,
             start_index=start_index + start_padding,
             max_index=len(data) + start_index - 1,
+            colname_time=colname_time,
         )
 
         self.observation = observation
@@ -66,11 +68,11 @@ class BuyEnvironment(BaseEnvironment):
         self.action_space = spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = observation.get_space()
 
-    def reset(self, seed=None):
-        super().reset(seed=seed)
-        observation = self._get_observation()
-        # assert self.observation_space.contains(observation), "Observation not in space"
-        return observation, self._get_info()
+    # def reset(self, seed=None):
+    #     super().reset(seed=seed)
+    #     observation = self._get_observation()
+    #     # assert self.observation_space.contains(observation), "Observation not in space"
+    #     return observation, self._get_info()
 
     def step(
         self, action: np.ndarray
@@ -118,8 +120,11 @@ class BuyEnvironment(BaseEnvironment):
     def _open_new_orders(self, num_orders: int):
         for _ in range(num_orders):
             open_price = self.get_current_price(OrderAction.OPEN)
+            current_data = self.get_current_data()
+            current_time = current_data[self.colname_time]
+
             self._open_order(
-                OrderType.BUY, self.lot, open_price, self.get_current_data().timestamp
+                OrderType.BUY, self.lot, open_price, current_time
             )
 
     def _close_excess_orders(self, num_orders: int):

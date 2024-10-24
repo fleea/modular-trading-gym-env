@@ -1,15 +1,25 @@
 import pandas as pd
+from src.utils.fraction import calculate_fraction
+from src.utils.rms import get_rms_multiplier
+
 
 # Add columns in data pre-processing
-d_high = "prev_day_high"
-d_low = "prev_day_low"
-d_close = "prev_day_close"
-w_high = "prev_week_high"
-w_low = "prev_week_low"
-w_close = "prev_week_close"
-m_high = "prev_month_high"
-m_low = "prev_month_low"
-m_close = "prev_month_close"
+change = "change_"
+high = "high"
+low = "low"
+close = "close"
+d = "prev_day"
+w = "prev_week"
+m = "prev_month"
+d_high = d + "_" + high
+d_low = d + "_" + low
+d_close = d + "_" + close
+w_high = w + "_" + high
+w_low = w + "_" + low
+w_close = w + "_" + close
+m_high = m + "_" + high
+m_low = m + "_" + low
+m_close = m + "_" + close
 
 
 def augment_with_hlc(df: pd.DataFrame) -> pd.DataFrame:
@@ -59,5 +69,21 @@ def augment_with_hlc(df: pd.DataFrame) -> pd.DataFrame:
 
     # Concatenate the original dataframe with the augmented data
     df_augmented = pd.concat([df, daily_filled, weekly_filled, monthly_filled], axis=1)
+
+    # # Create a vectorized version of calculate_fraction
+    # vectorized_calculate_fraction = np.vectorize(calculate_fraction)
+
+    # Define time periods and corresponding columns
+    time_periods = [d, w, m]
+    metrics = [high, low, close]
+
+    for period in time_periods:
+        for metric in metrics:
+            prev_metric = period + "_" + metric
+            change_fraction = calculate_fraction(df_augmented[metric], df_augmented[prev_metric])
+            rms_multiplier = get_rms_multiplier(change_fraction)
+            # print(f"rms_multiplier_{period}_{metric}: {rms_multiplier}")
+            percentage_change = change_fraction * rms_multiplier
+            df_augmented[f'{change}{prev_metric}'] = percentage_change
 
     return df_augmented

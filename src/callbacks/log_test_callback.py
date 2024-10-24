@@ -35,7 +35,12 @@ class LogTestCallback(BaseCallback):
                 if info.get("final_equity") is not None:
                     final_equity = info["final_equity"]
                     self.all_episode_equities.append(final_equity)
-
+                    final_equity_change_percentage = final_equity / info["equity_history"][0]
+                    mlflow.log_metric(
+                        f"{name}/episode_final_equity_change_percentage",
+                        final_equity_change_percentage,
+                        step=num_timesteps
+                    )
                     mlflow.log_metric(
                         f"{name}/episode_final_equity", final_equity, step=num_timesteps
                     )
@@ -82,12 +87,24 @@ class LogTestCallback(BaseCallback):
                 )
                 lstm_states = _states
                 obs, rewards, dones, infos = test_env.step(action)
+                mlflow.log_metric("eval_test/orders_number",
+                    infos[0]["num_orders"], 
+                    step=infos[0]["current_index"])
+                mlflow.log_metric("eval_test/action",
+                    action[0], 
+                    step=infos[0]["current_index"])
 
                 if dones.any():
                     info = infos[0]
                     mlflow.log_metric(
                         "eval_test/final_equity",
                         info["final_equity"],
+                        step=self.num_timesteps,
+                    )
+                    final_equity_change_percentage = info["final_equity"] / info["equity_history"][0]
+                    mlflow.log_metric(
+                        "eval_test/final_equity_change_percentage",
+                        final_equity_change_percentage,
                         step=self.num_timesteps,
                     )
                     break
